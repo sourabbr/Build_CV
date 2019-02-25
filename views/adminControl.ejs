@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CV Builder</title>
+  <link href='/static/css/google-fonts.css' rel="stylesheet">
+  <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon" />
+	<link rel="icon" href="/static/images/favicon-32x32.png" sizes="32x32" />
+	<link rel="icon" href="/static/images/favicon-32x32.png" sizes="192x192" />
+  <script src="/static/js/jquery-3.2.1.min.js"></script>
+  <link href="/static/css/vuetify.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <style>
+  [v-cloak] {
+    display: none;
+  }
+  </style>
+</head>
+<body>
+  <div id="app">
+  <div v-cloak>
+    <v-app>
+      <v-navigation-drawer
+      fixed
+      clipped
+      v-model="drawer"
+      app
+      class="purple lighten-5"
+      light
+    >
+    <v-list dense>
+      <v-list-tile>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer"><a href="/admin/adminProfile">ADMIN PROFILE</a></v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+    </v-list>
+  </v-navigation-drawer>
+  <v-toolbar style="background-color:white;opacity: 0.9;" dark fixed clipped-left app>
+    <v-toolbar-title class="purple--text">CV Builder</v-toolbar-title>
+    <v-spacer></v-spacer>
+    <v-btn flat small href="/admin/adminProfile" color="purple" class="hidden-sm-and-down">ADMIN PROFILE</v-btn>
+    <v-btn flat small color="purple" href="/admin/logout">Logout</v-btn>
+    <v-toolbar-side-icon dark @click.stop="drawer = !drawer" class="hidden-lg-only"></v-toolbar-side-icon>
+  </v-toolbar>
+  <v-content>
+    <div id="preloader">
+      <div id="loader"></div>
+    </div>
+    <v-container id="main-content">
+      <div id="add-users" v-if="addusers">
+        <h3>ADD USERS</h3>
+        <v-text-field
+          v-model="adduseremail"
+          placeholder="Enter email of the user"
+          regular
+          clearable
+          :rules="[rules.email]"
+        ></v-text-field>
+        <v-alert
+          id="add-user-alert"
+          :value="true"
+          type="success"
+        >
+          User Added
+        </v-alert>
+        <v-btn type="button" @click="addUser">Add</v-btn>
+      </div>
+      <br><br>
+      <div id="auth-users" v-if="authusers">
+        <h3>ACTIVE USERS</h3>
+        <p><em>Select users you want to block</em></p>
+        <table>
+          <tr>
+            <th>Select</th>
+            <th>Email</th>
+            <th>Status</th>
+          </tr>
+          <tr v-for="(i,index) in activeusers" :key=index>
+            <td><input type="checkbox" name="block-users" :value="i.email"></td>
+            <td>{{i.email}}</td>
+            <td>{{i.status}}</td>
+          </tr>
+        </table>
+        <v-btn type="button" @click="blockUsers">Block</v-btn>
+        <v-btn type="button" v-if="updateblockusers" @click="updateBlockUsers">Update</v-btn>
+      </div>
+      <br><br>
+      <div id="auth-users" v-if="authusers">
+        <h3>BLOCKED USERS</h3>
+        <p><em>Select users you want to make active</em></p>
+        <table>
+          <tr>
+            <th>Select</th>
+            <th>Email</th>
+            <th>Status</th>
+          </tr>
+          <tr v-for="(i,index) in blockedusers" :key=index>
+            <td><input type="checkbox" name="activate-users" :value="i.email"></td>
+            <td>{{i.email}}</td>
+            <td>{{i.status}}</td>
+          </tr>
+        </table>
+        <v-btn type="button" @click="activateUsers">Activate</v-btn>
+        <v-btn type="button" v-if="updateactivateusers" @click="updateActivateUsers">Update</v-btn>
+      </div>
+      <br><br>
+      <div id="auth-users" v-if="authusers">
+        <h3>REGISTERED USERS</h3>
+        <p><em>All registered users</em></p>
+        <table>
+          <tr>
+            <th>Email</th>
+            <th>Status</th>
+          </tr>
+          <tr v-for="(i,index) in registeredusers" :key=index>
+            <td>{{i.user}}</td>
+            <td>Registered</td>
+          </tr>
+        </table>
+      </div>
+    </v-container>
+    </v-content>
+    <v-footer style="background-color:white" app>
+        <span class="black--text" style="display:inline-block;white-space:nowrap;font-size:80%;"></span>
+        <v-spacer></v-spacer>
+        <v-btn flat small v-on:click="refreshpage" color="purple">Refresh Content</v-btn>
+    </v-footer>
+  </v-app>
+  </div>
+  </div>
+
+  <script src="/static/js/vue.min.js"></script>
+  <script src="/static/js/axios.min.js"></script>
+  <script src="/static/js/vuetify.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      setTimeout(function(){
+        $('#preloader').hide()
+        $('#main-content').show()
+      }, 1500);
+    });
+    new Vue({ 
+    el: '#app',
+    name: 'HelloWorld',
+    data () {
+    return {
+      drawer: null,
+      addusers: true,
+      authusers: true,
+      updateblockusers: false,
+      updateactivateusers: false,
+      adduseremail: '',
+      registeredusers: [],
+      blockedusers: [],
+      activeusers: [],
+      blockusers: [],
+      activateusers: [],
+      rules: {
+        required: value => !!value || 'Required',
+        counter: value => value.length <= 10 || 'Max 10 digits',
+        email: value => {
+          const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+          return pattern.test(value) || 'Invalid e-mail.'
+        }
+      }
+    }
+  },
+  methods: {
+    authUsersDisplay: function () {
+      this.allactiveusers= true
+    },
+    //post request to add new users to use this platform
+    addUser: function () {
+	  if( this.rules.email(this.adduseremail)==='Invalid e-mail.' ){
+		alert("Invalid email");
+		return;
+	  }
+      // axios.post('http://127.0.0.1:3000/admin/adduser', {user: this.adduseremail})
+      axios.post('/admin/adduser', {user: this.adduseremail})
+      .then(response => {
+          if(response.data){
+				console.log(response.data);
+				$('#add-user-alert').show();
+				$('#add-user-alert').hide(2000);
+          }
+      })
+      .catch(function (error) {
+          console.log(error);
+      });
+    },
+    //post request to get all registered users
+    allRegisteredUsers: function () {
+      // axios.post('http://127.0.0.1:3000/admin/registeredusers', {})
+      axios.post('/admin/registeredusers', {})
+      .then(response => {
+          if(response.data){
+            this.registeredusers = response.data;
+          }
+      })
+      .catch(function (error) {
+          console.log(error);
+      });
+    },
+    //post request to get all active users
+    allActiveUsers: function () {
+      // axios.post('http://127.0.0.1:3000/admin/allactiveusers', {})
+      axios.post('/admin/allactiveusers', {})
+      .then(response => {
+          if(response.data){
+              this.activeusers = response.data
+          }
+      })
+      .catch(function (error) {
+          console.log(error);
+      });
+    },
+    //function to collect block users
+    blockUsers: function () {
+      var busers = []
+      $("input:checkbox[name='block-users']:checked").each(function(){
+        busers.push($(this).val())
+      })
+      this.blockusers = busers
+      this.updateblockusers = true
+    },
+    //post request to update blocked users
+    updateBlockUsers: function () {
+      // axios.post('http://127.0.0.1:3000/admin/blockusers', {blocklist: this.blockusers})
+      axios.post('/admin/blockusers', {blocklist: this.blockusers})
+      .then(response => {
+          if(response.data){
+              console.log(response.data)
+              this.updateblockusers = false
+          }
+      })
+      .catch(function (error) {
+          console.log(error);
+      });
+    },
+    //post request to fetch all blocked users
+    allBlockedUsers: function () {
+      // axios.post('http://127.0.0.1:3000/admin/allblockedusers', {})
+      axios.post('/admin/allblockedusers', {})
+      .then(response => {
+          if(response.data){
+              this.blockedusers = response.data
+          }
+      })
+      .catch(function (error) {
+          console.log(error);
+      });
+    },
+    //function to collect activate users
+    activateUsers: function () {
+      var ausers = []
+      $("input:checkbox[name='activate-users']:checked").each(function(){
+        ausers.push($(this).val())
+      })
+      this.activateusers = ausers
+      this.updateactivateusers = true
+    },
+    //post request to activate users
+    updateActivateUsers: function () {
+      // axios.post('http://127.0.0.1:3000/admin/activateusers', {activatelist: this.activateusers})
+      axios.post('/admin/activateusers', {activatelist: this.activateusers})
+      .then(response => {
+          if(response.data){
+              console.log(response.data)
+              this.updateactivateusers= false
+          }
+      })
+      .catch(function (error) {
+          console.log(error);
+      });
+    },
+    //refresh page
+    refreshpage: function () {
+      location.reload()
+    }
+  },
+  beforeMount() {
+    this.allRegisteredUsers()
+    this.allActiveUsers()
+    this.allBlockedUsers()
+  }
+});
+  </script>
+    
+  <!-- Add "scoped" attribute to limit CSS to this component only -->
+  <style>
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    td, th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #loader {
+        display: block;
+        position: relative;
+        left: 50%;
+        top: 50%;
+        width: 150px;
+        height: 150px;
+        margin: -75px 0 0 -75px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: #9370DB;
+        -webkit-animation: spin 2s linear infinite;
+        animation: spin 2s linear infinite;
+    }
+    #loader:before {
+        content: "";
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        right: 5px;
+        bottom: 5px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: #BA55D3;
+        -webkit-animation: spin 3s linear infinite;
+        animation: spin 3s linear infinite;
+    }
+    #loader:after {
+        content: "";
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: #FF00FF;
+        -webkit-animation: spin 1.5s linear infinite;
+        animation: spin 1.5s linear infinite;
+    }
+    @-webkit-keyframes spin {
+        0%   {
+            -webkit-transform: rotate(0deg);
+            -ms-transform: rotate(0deg);
+            transform: rotate(0deg);
+        }
+        100% {
+            -webkit-transform: rotate(360deg);
+            -ms-transform: rotate(360deg);
+            transform: rotate(360deg);
+        }
+    }
+    @keyframes spin {
+      0%   {
+          -webkit-transform: rotate(0deg);
+          -ms-transform: rotate(0deg);
+          transform: rotate(0deg);
+      }
+      100% {
+          -webkit-transform: rotate(360deg);
+          -ms-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+    }
+    #main-content{
+      display: none;
+    }
+    #add-user-alert{
+      display: none;
+    }
+    .v-footer{
+      box-shadow:5px 12px 8px 10px #111;
+    }
+  </style>
+</body>
+</html>
+    

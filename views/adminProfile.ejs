@@ -1,0 +1,3789 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CV Builder</title>
+  <link href='/static/css/google-fonts.css' rel="stylesheet">
+  <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon" />
+	<link rel="icon" href="/static/images/favicon-32x32.png" sizes="32x32" />
+	<link rel="icon" href="/static/images/favicon-32x32.png" sizes="192x192" />
+  <script src="/static/js/jquery-3.2.1.min.js"></script>
+  <link href="/static/css/vuetify.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <style>
+  [v-cloak] {
+    display: none;
+  }
+  </style>
+</head>
+<body>
+  <div id="app">
+  <div v-cloak>
+    <v-app>
+      <v-navigation-drawer
+      fixed
+      clipped
+      v-model="drawer"
+      app
+      class="purple lighten-5"
+      light
+    >
+    <v-list dense>
+      <v-list-tile>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer" class="blue--text" v-on:click="step1display">STEP 1</v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile v-if="step1" v-for="(i,index) in step1titles" :key=index>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer" v-on:click="step1scroll(index)">{{i}}</v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer" class="blue--text" v-on:click="step2display">STEP 2</v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile v-if="step2" v-for="(i,index) in step2titles" :key=index>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer" v-on:click="step2scroll(index)">{{i}}</v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile>
+		  <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer" class="blue--text" v-on:click="step3display">STEP 3</v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile v-if="step3" v-for="(i,index) in step3titles" :key=index>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer" v-on:click="step3scroll(index)">{{i}}</v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer" class="blue--text" v-on:click="step4display">STEP 4</v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile v-if="step4" v-for="(i,index) in step4titles" :key=index>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer" v-on:click="step4scroll(index)">{{i}}</v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile>
+        <v-list-tile-content>
+          <v-dialog
+            v-model="notifier"
+            width="700"
+          >
+            <v-list-tile-title
+              slot="activator" style="cursor:pointer" class="blue--text"
+            >
+              NOTIFICATION
+            </v-list-tile-title>
+            <v-card>
+              <v-card-title
+                class="headline grey lighten-2"
+                primary-title
+              >
+                Message from Editor
+              </v-card-title>
+              <v-card-text v-for="(i,index) in message" :key=index class="message-logs">
+                <p>{{i}}</p>
+                <hr>
+              </v-card-text>
+              <v-divider></v-divider>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="primary"
+                  flat
+                  @click="notifier = false"
+                >
+                  Close
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer" class="blue--text" v-on:click="show_changes">SHOW CHANGES</v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile>
+        <v-list-tile-content>
+          <v-dialog
+            v-model="changeslogsnotifier"
+            width="800"
+            height="800"
+          >
+            <v-list-tile-title
+              slot="activator" style="cursor:pointer" class="blue--text"
+            >
+              CHANGES LOGS
+            </v-list-tile-title>
+            <v-card>
+              <v-card-title
+                class="headline grey lighten-2"
+                primary-title
+              >
+                PROFILE CHANGES<v-spacer></v-spacer>
+                <v-btn flat small v-on:click="sort_profile_changes('all')">All</v-btn>
+                <v-btn flat small v-on:click="sort_profile_changes('user')">User</v-btn>
+                <v-btn flat small v-on:click="sort_profile_changes('editor')">Editor</v-btn>
+              </v-card-title>
+              <v-card-text>
+                <div v-if="profilechangesbyall" v-for="(i,index) in changeslogall" :key=index class="changes-logs">
+                  <p>PROFILE CHANGE - {{changeslogall.length-index}}</p>
+                  <p>{{i}}</p>
+                  <hr>
+                </div>
+                <div v-if="profilechangesbyuser" v-for="(i,index) in changesloguser" :key=index class="changes-logs">
+                  <p>PROFILE CHANGE - {{changesloguser.length-index}}</p>
+                  <p>{{i}}</p>
+                  <hr>
+                </div>
+                <div v-if="profilechangesbyeditor" v-for="(i,index) in changeslogeditor" :key=index class="changes-logs">
+                  <p>REVIEW - {{changeslogeditor.length-index}}</p>
+                  <p>{{i}}</p>
+                  <hr>
+                </div>
+              </v-card-text>
+              <v-divider></v-divider>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="primary"
+                  flat
+                  @click="changeslogsnotifier = false"
+                >
+                  Close
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-list-tile-content>
+      </v-list-tile>
+      <v-list-tile>
+        <v-list-tile-content>
+          <v-dialog v-model="adminnotifier" persistent max-width="700px">
+            <v-list-tile-title slot="activator" style="cursor:pointer" class="blue--text">NOTIFY USER</v-list-tile-title>
+            <v-card>
+              <v-card-title>
+                <span class="headline">Messenger</span>
+              </v-card-title>
+              <v-card-text>
+                <v-container grid-list-md>
+                  <v-layout wrap>
+                    <v-flex xs12 sm6 md4>
+                      <v-autocomplete
+                        v-model="messageemail"
+                        :items="profiles"
+                        label="Enter email"
+                      >
+                      </v-autocomplete>
+                    </v-flex>
+                    <v-flex xs12>
+                      <v-autocomplete
+                      v-model="msg.field"
+                      :items="fields"
+                      label="Enter field"
+                      >
+                      </v-autocomplete>
+                    </v-flex>
+                    <v-flex xs12>
+                      <v-textarea
+                      solo
+                      v-model="msg.msg"
+                      label="Message"
+                      ></v-textarea>
+                    </v-flex>
+                  </v-layout>
+                </v-container>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" flat @click.native="adminnotifier = false">Close</v-btn>
+                <v-btn color="blue darken-1" flat @click.native="adminnotifier = false" v-on:click="submitMessage">Send</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-list-tile-content>
+      </v-list-tile>
+      <!-- <v-list-tile>
+        <v-list-tile-content>
+          <v-list-tile-title style="cursor:pointer"><a href="/admin/adminControl">AUTHENTICATE USERS</a></v-list-tile-title>
+        </v-list-tile-content>
+      </v-list-tile>
+    </v-list> -->
+  </v-navigation-drawer>
+  <v-toolbar style="background-color:white;opacity: 0.9;" dark fixed clipped-left app>
+    <v-toolbar-title class="purple--text hidden-sm-and-down">CV Builder</v-toolbar-title>
+    <v-spacer></v-spacer>
+    <v-btn flat small v-on:click="step1display" color="purple" class="hidden-sm-and-down">Step 1</v-btn>
+    <v-btn flat small v-on:click="step2display" color="purple" class="hidden-sm-and-down">Step 2</v-btn>
+    <v-btn flat small v-on:click="step3display" color="purple" class="hidden-sm-and-down">Step 3</v-btn>
+    <v-btn flat small v-on:click="step4display" color="purple" class="hidden-sm-and-down">Step 4</v-btn>
+    <v-dialog v-model="adminnotifier" persistent max-width="700px">
+      <v-btn slot="activator" class="hidden-sm-and-down" flat small color="purple">Notify User</v-btn>
+      <v-card>
+        <v-card-title>
+          <span class="headline">Messenger</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container grid-list-md>
+            <v-layout wrap>
+              <v-flex xs12 sm6 md4>
+                <v-autocomplete
+                  v-model="messageemail"
+                  :items="profiles"
+                  label="Enter email"
+                >
+                </v-autocomplete>
+              </v-flex>
+              <v-flex xs12>
+                <v-autocomplete
+                v-model="msg.field"
+                :items="fields"
+                label="Enter field"
+                >
+                </v-autocomplete>
+              </v-flex>
+              <v-flex xs12>
+                <v-textarea
+                solo
+                v-model="msg.msg"
+                label="Message"
+                ></v-textarea>
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" flat @click.native="adminnotifier = false">Close</v-btn>
+          <v-btn color="blue darken-1" flat @click.native="adminnotifier = false" v-on:click="submitMessage">Send</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="changeslogsnotifier"
+      width="800"
+      height="800"
+    >
+      <v-btn
+        slot="activator"
+        flat
+        small
+        color="purple" class="hidden-sm-and-down"
+      >
+        CHANGES LOGS
+      </v-btn>
+      <v-card>
+        <v-card-title
+          class="headline grey lighten-2"
+          primary-title
+        >
+          PROFILE CHANGES<v-spacer></v-spacer>
+          <v-btn flat small v-on:click="sort_profile_changes('all')">All</v-btn>
+          <v-btn flat small v-on:click="sort_profile_changes('user')">User</v-btn>
+          <v-btn flat small v-on:click="sort_profile_changes('editor')">Editor</v-btn>
+        </v-card-title>
+        <v-card-text>
+          <div v-if="profilechangesbyall" v-for="(i,index) in changeslogall" :key=index class="changes-logs">
+            <p>PROFILE CHANGE - {{changeslogall.length-index}}</p>
+            <p>{{i}}</p>
+            <hr>
+          </div>
+          <div v-if="profilechangesbyuser" v-for="(i,index) in changesloguser" :key=index class="changes-logs">
+            <p>PROFILE CHANGE - {{changesloguser.length-index}}</p>
+            <p>{{i}}</p>
+            <hr>
+          </div>
+          <div v-if="profilechangesbyeditor" v-for="(i,index) in changeslogeditor" :key=index class="changes-logs">
+            <p>REVIEW - {{changeslogeditor.length-index}}</p>
+            <p>{{i}}</p>
+            <hr>
+          </div>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            flat
+            @click="changeslogsnotifier = false"
+          >
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-btn flat small color="purple" dark @click="show_changes" class="hidden-sm-and-down"><v-icon>error_outline</v-icon></v-btn>
+    <v-dialog
+      v-model="notifier"
+      width="700"
+    >
+      <v-btn
+        slot="activator"
+        flat
+        small
+        color="purple" class="hidden-sm-and-down"
+      >
+        <v-icon>notifications_active</v-icon>
+      </v-btn>
+      <v-card>
+        <v-card-title
+          class="headline grey lighten-2"
+          primary-title
+        >
+          Message from Editor
+        </v-card-title>
+        <v-card-text v-for="(i,index) in message" :key=index class="message-logs">
+          <p>{{i}}</p>
+          <hr>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            flat
+            @click="notifier = false"
+          >
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-btn flat small color="purple" href="/admin/logout">Logout</v-btn>
+    <v-toolbar-side-icon color="purple" @click.stop="drawer = !drawer" class="hidden-lg-only"></v-toolbar-side-icon>
+  </v-toolbar>
+  <v-content>
+    <div id="preloader">
+      <div id="loader"></div>
+    </div>
+    <v-container id="main-content">
+      <v-snackbar
+        v-model="snackbar"
+        class="snackbar"
+        color=purple
+        right=right
+        vertical=vertical
+        :timeout=timeout
+      >
+        {{changesFormatted}}
+        <v-btn
+          dark
+          flat
+          @click="snackbar = false"
+        >
+          Close
+        </v-btn>
+      </v-snackbar>
+      <v-autocomplete
+        v-model="searchemail"
+        :items="profiles"
+        label="Enter email to get the profile"
+        max-height="500"
+      >
+      </v-autocomplete>
+      <v-btn
+        color="purple"
+        dark
+        small
+        v-on:click="retrieveCv()"
+      >START REVIEW
+      </v-btn>
+      <div id="step1" v-if="step1">
+        <v-layout row wrap>
+          <v-flex xs12>
+            <h4 id="basic-details">BASIC DETAILS</h4>
+          </v-flex>
+          <v-flex xs12 md5>
+            <v-text-field
+              v-model="cv.basic.firstname"
+              label="Firstname"
+              placeholder="Enter your firstname"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md5 offset-md1>
+            <v-text-field
+              v-model="cv.basic.lastname"
+              label="Lastname"
+              placeholder="Enter your lastname"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12>
+            <v-text-field
+              v-model="cv.basic.address"
+              regular
+              label="Address"
+              placeholder="House Number, Street name, Locality, City, PIN"
+              clearable
+              :rules="[rules.required]"
+          ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md5>
+            <v-text-field
+              v-model="cv.basic.email"
+              label="Email"
+              placeholder="Enter your email"
+              regular
+              clearable
+              :rules="[rules.email]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md5 offset-md1>
+            <v-text-field
+              v-model="cv.basic.phone"
+              type=number
+              id="mobile"
+              label="Phone with country code"
+              placeholder="Eg: 919874563215"
+              regular
+              clearable
+              counter
+              :rules="[rules.counter]"
+            ></v-text-field>
+          </v-flex>
+        </v-layout>
+        <v-layout row wrap>
+          <v-flex xs12>
+            <h4 id="objective">OBJECTIVE</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-text-field
+              v-model="cv.objective"
+              label="Objective"
+              placeholder="Applying for admission to the MS in XXX program at the University of XXXX for <Term> <Year>"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+        </v-layout>
+        <v-layout row wrap>
+          <v-flex xs12>
+            <h4 id="education">EDUCATION</h4>
+          </v-flex>
+          <p>Note: <em>Enter the latest education first</em></p>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.education.pg" :key=index >
+              <v-card-title><h5>PG-{{index + 1}}</h5><v-spacer></v-spacer><span v-on:click="deletePGForm(index)" style="cursor:pointer">X</span></v-card-title>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.degreename"
+                  label="Postgraduation Degree"
+                  placeholder="Enter Postgraduation degree"
+                  regular
+                  clearable
+                  :rules="[rules.required]"
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.ranking"
+                  label="Rank"
+                  placeholder="Eg:2 among 50"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.collegename"
+                  label="College name"
+                  placeholder="Enter College name"
+                  regular
+                  clearable
+                  :rules="[rules.required]"
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.cgpa"
+                  type=number
+                  label="CGPA/GPA/Percentage"
+                  placeholder="Score"
+                  regular
+                  clearable
+                  :rules="[rules.cgpa]"
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  type=number
+                  v-model="i.cgpascale"
+                  placeholder="Total"
+                  label="Total Scale"
+                  regular
+                  clearable
+                  :rules="[rules.required]"
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.year"
+                  type="month"
+                  label="Year"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewPGForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <br>
+          <v-flex xs12>
+            <h5>UG</h5>
+          </v-flex>
+          <v-flex xs12 md6>
+            <v-text-field
+              v-model="cv.education.degree.degreename"
+              label="Bachelor Degree"
+              placeholder="Enter Bachelor’s degree"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md2 offset-md1>
+            <v-text-field
+              v-model="cv.education.degree.ranking"
+              label="Rank"
+              placeholder="Eg:2 among 50"
+              regular
+              clearable
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md4>
+            <v-text-field
+              v-model="cv.education.degree.collegename"
+              label="College name"
+              placeholder="Enter College name"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md2 offset-md1>
+            <v-text-field
+              v-model="cv.education.degree.cgpa"
+              type=number
+              label="CGPA/GPA/Percentage"
+              placeholder="Score"
+              regular
+              clearable
+              :rules="[rules.cgpa]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md2 offset-md1>
+            <v-text-field
+              type=number
+              v-model="cv.education.degree.cgpascale"
+              placeholder="Total"
+              label="Total Scale"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md1 offset-md1>
+            <v-text-field
+              v-model="cv.education.degree.year"
+              type="month"
+              label="Year"
+              placeholder="Mmm 20yy"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <br>
+          <v-flex xs12>
+            <h5>12th Grade or Diploma</h5>
+          </v-flex>
+          <v-flex xs12 md4>
+            <v-text-field
+              v-model="cv.education.twelth.schoolname"
+              label="School name"
+              placeholder="Enter School name"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md2 offset-md1>
+            <v-text-field
+              v-model="cv.education.twelth.cgpa"
+              type=number
+              label="CGPA/GPA/Percentage"
+              placeholder="Score"
+              regular
+              clearable
+              :rules="[rules.cgpa]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md2 offset-md1>
+            <v-text-field
+              type=number
+              v-model="cv.education.twelth.cgpascale"
+              placeholder="Total"
+              label="Total Scale"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md1 offset-md1>
+            <v-text-field
+              v-model="cv.education.twelth.year"
+              type="month"
+              label="Year"
+              placeholder="Mmm 20yy"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <br>
+          <v-flex xs12>
+            <h5>10th Grade</h5>
+          </v-flex>
+          <v-flex xs12 md4>
+            <v-text-field
+              v-model="cv.education.tenth.schoolname"
+              label="School name"
+              placeholder="Enter School name"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md2 offset-md1>
+            <v-text-field
+              v-model="cv.education.tenth.cgpa"
+              type=number
+              label="CGPA/GPA/Percentage"
+              placeholder="Score"
+              regular
+              clearable
+              :rules="[rules.cgpa]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md2 offset-md1>
+            <v-text-field
+              type=number
+              v-model="cv.education.tenth.cgpascale"
+              placeholder="Total"
+              label="Total Scale"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12 md1 offset-md1>
+            <v-text-field
+              v-model="cv.education.tenth.year"
+              type="month"
+              label="Year"
+              placeholder="Mmm 20yy"
+              regular
+              clearable
+              :rules="[rules.required]"
+            ></v-text-field>
+          </v-flex>
+        </v-layout>
+      </div>
+      <div id="step2" v-if="step2">
+        <v-layout row wrap>
+          <v-flex xs12>
+            <h5 id="research-interests">Research Interests</h5>
+          </v-flex>
+          <v-flex xs12>
+            <v-text-field
+              v-model="cv.research_interests"
+              placeholder="Interested research fields"
+              regular
+              clearable
+              :rules="[rules.maxoptions]"
+            ></v-text-field>
+          </v-flex>
+          <v-flex xs12>
+            <h5 id="coursework-taken">Coursework Taken</h5>
+          </v-flex>
+          <v-flex xs12>
+            <v-text-field
+              v-model="cv.coursework_taken"
+              placeholder="Taken courseworks"
+              regular
+              clearable
+              :rules="[rules.maxoptions]"
+            ></v-text-field>
+          </v-flex>
+          <p>Note: <em>Please Leave the <b>till</b> or <b>to</b> date empty if its <b>present</b> for the following fields.</em><br><em>Enter the latest experience first</em></p>
+          <v-flex xs12>
+            <h5 id="professional-development">Professional Experience</h5>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.professional_development" :key=index >
+              <v-card-title>Professional Experience-{{index + 1}}<v-spacer></v-spacer><span v-on:click="deleteProfessionalDevelopmentForm(index)" style="cursor:pointer">X</span></v-card-title>
+              <v-card-text>
+              <v-flex xs12 md6>
+                <v-text-field
+                  v-model="i.company"
+                  label="Company"
+                  placeholder="Company Name"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md6>
+                <v-text-field
+                  v-model="i.aboutcompany"
+                  label="About"
+                  placeholder="About Company"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.from"
+                  type="month"
+                  label="From"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.till"
+                  type="month"
+                  label="Till"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.designation"
+                  label="Designation"
+                  placeholder="Your designation at the company"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.rolesandresponsibilities"
+                  label="Roles and Responsibilities"
+                  placeholder="Enter your role and responsibility in the company"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.achievements"
+                  label="Achievments"
+                  placeholder="Your achievements at the company"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.projecttitle"
+                  label="Project Title"
+                  placeholder="Title of the project(optional)"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.goal"
+                  label="Goal Statement"
+                  placeholder="Enter Problem Statement (optional)"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.methodology"
+                  label="Methodology"
+                  placeholder="Write about the tools and methods used"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.result"
+                  label="Result"
+                  placeholder="Add results (in terms of efficiency/accuracy, if possible)(optional)"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              </v-card-text>
+              <v-divider></v-divider>
+            </v-card>
+            <v-btn
+              color="purple lighten-2"
+              fab
+              dark
+              small
+              outline
+              v-on:click="addNewProfessionalDevelopmentForm()"
+            >
+              <v-icon>add</v-icon>
+            </v-btn>
+          </v-flex>
+          <v-flex xs12>
+            <h5 id="internships">Internships</h5>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.internship" :key=index >
+              <v-card-title>Internship-{{index + 1}}<v-spacer></v-spacer><span v-on:click="deleteInternshipForm(index)" style="cursor:pointer">X</span></v-card-title>
+              <v-card-text>
+              <v-flex xs12 md6>
+                <v-text-field
+                  v-model="i.title"
+                  label="Title"
+                  placeholder="Internship title, Company Name"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.from"
+                  type="month"
+                  label="From"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.to"
+                  type="month"
+                  label="To"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md6>
+                <v-text-field
+                  v-model="i.companydescription"
+                  label="Company Description"
+                  placeholder="Description of Company"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md6>
+                <v-text-field
+                  v-model="i.projecttitle"
+                  label="Project title"
+                  placeholder="Enter title of the project"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.description1"
+                  label="About"
+                  placeholder="Description of the project"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.description2"
+                  label="Your contribution"
+                  placeholder="Description on what you did"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              </v-card-text>
+              <v-divider></v-divider>
+            </v-card>
+            <v-btn
+              color="purple lighten-2"
+              fab
+              dark
+              small
+              outline
+              v-on:click="addNewInternshipForm()"
+            >
+              <v-icon>add</v-icon>
+            </v-btn>
+          </v-flex>
+        </v-layout>
+        <hr>
+        <v-layout row wrap>
+          <v-flex xs12>
+            <h5 id="research-experience">Research Experience</h5>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.research_experience" :key=index >
+              <v-card-title>Research Experience-{{index + 1}}<v-spacer></v-spacer><span v-on:click="deleteResearchExperienceForm(index)" style="cursor:pointer">X</span></v-card-title>
+              <v-card-text>
+              <v-flex xs12 md6>
+                <v-text-field
+                  v-model="i.title"
+                  label="Title"
+                  placeholder="Title"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.from"
+                  type="month"
+                  label="From"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.to"
+                  type="month"
+                  label="To"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.description1"
+                  label="About"
+                  placeholder="Description of the project"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.description2"
+                  label="Your contribution"
+                  placeholder="Description on what you did"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              </v-card-text>
+              <v-divider></v-divider>
+            </v-card>
+            <v-btn
+              color="purple lighten-2"
+              fab
+              dark
+              small
+              outline
+              v-on:click="addNewResearchExperienceForm()"
+            >
+              <v-icon>add</v-icon>
+            </v-btn>
+          </v-flex>
+          <br><br>
+          <v-flex xs12>
+            <h5 id="undergraduate-projects">Undergraduate Projects</h5>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.ugproject" :key=index >
+              <v-card-title>UG-project-{{index + 1}}<v-spacer></v-spacer><span v-on:click="deleteUgProjectForm(index)" style="cursor:pointer">X</span></v-card-title>
+              <v-card-text>
+              <v-flex xs12 md6>
+                <v-text-field
+                  v-model="i.title"
+                  label="Title"
+                  placeholder="Project title"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.from"
+                  type="month"
+                  label="From"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.to"
+                  type="month"
+                  label="To"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.description1"
+                  label="Goal Statement"
+                  placeholder="Enter Problem Statement"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.description2"
+                  label="Methodology"
+                  placeholder="Write about the tools and methods used"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.result"
+                  label="Result"
+                  placeholder="Add results (in terms of efficiency/accuracy, if possible)"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              </v-card-text>
+              <v-divider></v-divider>
+            </v-card>
+            <v-btn
+              color="purple lighten-2"
+              fab
+              dark
+              small
+              outline
+              v-on:click="addNewUgProjectForm()"
+            >
+              <v-icon>add</v-icon>
+            </v-btn>
+          </v-flex>
+          <br><br><br>
+          <v-flex xs12>
+            <h5 id="course-projects">Course Projects</h5>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.courseproject" :key=index >
+              <v-card-title>Course-project-{{index + 1}}<v-spacer></v-spacer><span v-on:click="deleteCourseProjectForm(index)" style="cursor:pointer">X</span></v-card-title>
+              <v-card-text>
+              <v-flex xs12 md6>
+                <v-text-field
+                  v-model="i.title"
+                  label="Title"
+                  placeholder="Project title"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.from"
+                  type="month"
+                  label="From"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12 md3>
+                <v-text-field
+                  v-model="i.to"
+                  type="month"
+                  label="To"
+                  placeholder="Mmm 20yy"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.description1"
+                  label="About"
+                  placeholder="Description of the project"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  v-model="i.description2"
+                  label="Your contribution"
+                  placeholder="Description on what you did"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-flex>
+              </v-card-text>
+              <v-divider></v-divider>
+            </v-card>
+            <v-btn
+              color="purple lighten-2"
+              fab
+              dark
+              small
+              outline
+              v-on:click="addNewCourseProjectForm()"
+            >
+              <v-icon>add</v-icon>
+            </v-btn>
+          </v-flex>
+        </v-layout>
+      </div>
+      <div id="step3" v-if="step3">
+        <v-layout row wrap>
+          <v-flex xs12 class="mt-1">
+			      <p>Note: <em>Enter the latest experience first</em></p>
+            <h4 id="publications">PUBLICATIONS, PRESENTATIONS AND CONFERENCES</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.ppc" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deletePpcForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="J. K. Author, “Title of paper,” in Unabbreviated Name of Conf., City of Conf., Abbrev. State (if given), year, pp. xxx-xxx"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            dark
+            small
+            fab
+            outline
+            v-on:click="addNewPpcForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="workshop">WORKSHOPS</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.workshop" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteWorkshopForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Eg: Attended two-day workshop on Machine Learning, organised by Machine Learning Society of Japan at IIT-Bombay"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            dark
+            small
+            fab
+            outline
+            v-on:click="addNewWorkshopForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="certifications">CERTIFICATIONS</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.certification" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteCertificationForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Eg: Data Analytics, Stanford University, Udemy"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            dark
+            small
+            fab
+            outline
+            v-on:click="addNewCertificationForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="technical-skills">TECHNICAL SKILLS</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card>
+              <v-card-text>
+                <h5>Operating Systems:</h5>
+                <v-text-field
+                  v-model="cv.technical_skills.operating_systems"
+                  placeholder="Eg: Windows, Linux, Mac"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-divider></v-divider>
+          <v-flex xs12>
+            <v-card>
+              <v-card-text>
+                <h5>Programming Languages:</h5>
+                <v-text-field
+                  v-model="cv.technical_skills.programming_languages"
+                  placeholder="Eg: Perl, C++, Python, etc."
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-divider></v-divider>
+          <v-flex xs12>
+            <v-card>
+              <v-card-text>
+                <h5>Database and Client/Server Technologies:</h5>
+                <v-text-field
+                  v-model="cv.technical_skills.database_client_server_technologies"
+                  placeholder="Eg: Oracle DB, MySQL, etc."
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-divider></v-divider>
+          <v-flex xs12>
+            <v-card>
+              <v-card-text>
+                <h5>Software Tools:</h5>
+                <v-text-field
+                  v-model="cv.technical_skills.software_tools"
+                  placeholder="Software Tools that you know"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-divider></v-divider>
+          <v-flex xs12>
+            <v-card>
+              <v-card-text>
+                <h5>Web Applications:</h5>
+                <v-text-field
+                  v-model="cv.technical_skills.web_applications"
+                  placeholder="Eg: HTML, CSS, PHP, etc."
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-divider></v-divider>
+          <v-flex xs12>
+            <v-card>
+              <v-card-text>
+                <h5>Others:</h5>
+                <v-text-field
+                  v-model="cv.technical_skills.others"
+                  placeholder="Eg: ANSYS, MATLAB, Adobe Suite, etc."
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-flex xs12 class="mt-2">
+            <h4 id="awards-and-extra-activities">AWARDS AND EXTRA CURRICULAR ACTIVITIES</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.aeca" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteAecaForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Award"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewAecaForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <br><br><br>
+          <v-flex xs12 class="mt-2">
+            <h4 id="languages">LANGUAGES</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.languages" :key=index height="100">
+              <v-card-text>
+                <p v-on:click="deleteLanguagesForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Language name (Read/Write/Speak)"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewLanguagesForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+        </v-layout>
+      </div>
+      <div id="step4" v-if="step4">
+        <v-layout row wrap>
+          <v-flex xs12>
+            <p>Note: <em>Add any of the following categories as maybe applicable to your case. This will depend on the domain you are in, the kind of projects you have and the kind of school you are targeting.</em><br><em>Enter the latest experience first</em></p>
+          </v-flex>
+          <v-flex xs12 class="mt-2">
+            <h4 id="volunteer-work">VOLUNTEERING EXPERIENCE</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.volunteer_work" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteVolunteerWorkForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Any volunteer work that you have done"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewVolunteerWorkForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="community-work">COMMUNITY WORK</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.community_work" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteCommunityWorkForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Any community work that you have done"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewCommunityWorkForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="hobbies">HOBBIES</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.hobbies" :key=index height="100">
+              <v-card-text>
+                <p v-on:click="deleteHobbiesForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Mention your hobbies"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewHobbiesForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="memberships">MEMBERSHIPS</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.memberships" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteMembershipsForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Mention the memberships you have"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewMembershipsForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="leadership-experience">LEADERSHIP EXPERIENCE</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.leadership_experience" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteLeadershipExperienceForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Mention your leadership experience"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewLeadershipExperienceForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="international-study-exchange">INTERNATIONAL STUDY / EXCHANGE PROGRAM</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.international_study_exchange_program" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteInternationalStudyExchangeProgramForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Any International study or exchange program that you have done"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewInternationalStudyExchangeProgramForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="summer-school-program">SUMMER SCHOOL PROGRAM</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.summer_school_program" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteSummerSchoolProgramForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Any summer school program that you have done"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewSummerSchoolProgramForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+          <v-flex xs12 class="mt-2">
+            <h4 id="scholarships-fellowships">SCHOLARSHIPS / FELLOWSHIPS</h4>
+          </v-flex>
+          <v-flex xs12>
+            <v-card v-for="(i,index) in cv.scholarships_fellowships" :key=index height="200">
+              <v-card-text>
+                <p v-on:click="deleteScholarshipsFellowshipsForm(index)" style="cursor:pointer;text-align:right;">X</p>
+                <v-text-field
+                  v-model="i.description"
+                  placeholder="Any scholarships or fellowships that you have got"
+                  regular
+                  clearable
+                ></v-text-field>
+                <v-text-field
+                  v-model="i.date"
+                  type="month"
+                  label="Date"
+                  regular
+                  clearable
+                ></v-text-field>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+          <v-btn
+            color="purple lighten-2"
+            fab
+            dark
+            small
+            outline
+            v-on:click="addNewScholarshipsFellowshipsForm()"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+        </v-layout>
+        <p>Note: <em>Fields with no or missing values wont be displayed in the doc or pdf file</em></p>
+        <v-btn
+            color="purple lighten-1"
+            dark
+            medium
+            v-on:click="submitCv()"
+          >END REVIEW
+        </v-btn>
+        <p v-if="cvloadingmsg">Please wait while your CV is generated...</p>
+        <v-btn
+            color="purple lighten-1"
+            dark
+            medium
+            v-on:click="open_pdf()"
+            v-if="pdfbutton"
+          >PDF file
+        </v-btn>
+        <v-btn
+            color="purple lighten-1"
+            dark
+            medium
+            v-on:click="open_doc()"
+            v-if="docbutton"
+          >Doc file
+        </v-btn>
+      </div>
+      <div id="exportContent" style="display:none">
+      </div>
+      </v-container>
+    </v-content>
+    <v-footer style="background-color:white" app>
+        <span class="black--text" style="display:inline-block;white-space:nowrap;font-size:80%;"></span>
+        <v-spacer></v-spacer>
+        <v-btn flat small v-on:click="refreshpage" color="purple">Refresh Content</v-btn>
+    </v-footer>
+  </v-app>
+	</div>
+</div>
+
+  <script src="/static/js/vue.min.js"></script>
+  <script src="/static/js/axios.min.js"></script>
+  <script src="/static/js/vuetify.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      setTimeout(function(){
+        $('#preloader').hide()
+        $('#main-content').show()
+      }, 1500);
+    });
+      new Vue({ 
+      el: '#app',
+      name: 'HelloWorld',
+      data () {
+    return {
+      cvloadingmsg: false,
+      profilechangesbyall: true,
+      profilechangesbyuser: false,
+      profilechangesbyeditor: false,
+      adminnotifier: false,
+      notifier: false,
+      changeslogsnotifier: false,
+      s:'',
+      snackbar: false,
+      timeout: 6000,
+      drawer: null,
+      step1: true,
+      step2: false,
+      step3: false,
+      step4: false,
+      pdfbutton: false,
+      docbutton: false,
+      fields: ['General','Basic Details','Objective','Education','Professional Experience','Internships','Research Experience','Undergraduate Projects','Course Projects','Publications','Certifications','Technical Skills','Awards and Extra Activities','Languages','Volunteer Work','Community Work','Hobbies','Professional Development','Memberships','Leadership Experience','International Study/Exchange','Summer School Program','Scholarships/Fellowships'],
+      step1titles: ['Basic Details','Objective','Education'],
+      step2titles: ['Professional Experience','Internships','Research Experience','Undergraduate Projects','Course Projects'],
+      step3titles: ['Publications','Workshops', 'Certifications','Technical Skills','Awards and Extra Activities','Languages'],
+      step4titles: ['Volunteering Experience','Community Work','Hobbies','Memberships','Leadership Experience','International Study/Exchange','Summer School Program','Scholarships/Fellowships'],
+      step1ids: ['#basic-details','#objective','#education'],
+      step2ids: ['#professional-development','#internships','#research-experience','#undergraduate-projects','#course-projects'],
+      step3ids: ['#publications','#workshop', '#certifications','#technical-skills','#awards-and-extra-activities','#languages'],
+      step4ids: ['#volunteer-work','#community-work','#hobbies','#memberships','#leadership-experience','#international-study-exchange','#summer-school-program','#scholarships-fellowships'],
+      user_data: {
+        user_email: '',
+        user_exists: 0,
+        user_id: '',
+        user_name: ''
+      },
+      message: [],
+      messageemail: '',
+      msg: {
+        field: '',
+        msg: ''
+      },
+      changeslogall: [],
+      changesloguser: [],
+      changeslogeditor: [],
+      email: '',
+      cv: {
+        basic: {
+          firstname: '',
+          lastname: '',
+          address: '',
+          email: '',
+          phone: ''
+        },
+        objective: '',
+        education: {
+          pg: [{
+            degreename: '',
+            ranking: '',
+            collegename: '',
+            cgpa: '',
+            cgpascale: '',
+            year: ''
+          }],
+          degree: {
+            degreename: '',
+            ranking: '',
+            collegename: '',
+            cgpa: '',
+            cgpascale: '',
+            year: ''
+          },
+          twelth: {
+            schoolname: '',
+            cgpa: '',
+            cgpascale: '',
+            year: ''
+          },
+          tenth: {
+            schoolname: '',
+            cgpa: '',
+            cgpascale: '',
+            year: ''
+          }
+        },
+        research_interests: '',
+        coursework_taken: '',
+        professional_development: [
+          {
+            company: '',
+            aboutcompany: '',
+            from: '',
+            till: '',
+            designation: '',
+            rolesandresponsibilities: '',
+            achievements: '',
+            projecttitle: '',
+            goal: '',
+            methodology: '',
+            result: ''
+          }
+        ],
+        internship: [
+          {
+            title: '',
+            from: '',
+            to: '',
+            companydescription: '',
+            projecttitle: '',
+            description1: '',
+            description2: ''
+          }
+        ],
+        research_experience: [
+          {
+            title: '',
+            from: '',
+            to: '',
+            description1: '',
+            description2: ''
+          }
+        ],
+        ugproject: [
+          {
+            title: '',
+            from: '',
+            to: '',
+            description1: '',
+            description2: '',
+            result: ''
+          }
+        ],
+        courseproject: [
+          {
+            title: '',
+            from: '',
+            to: '',
+            description1: '',
+            description2: ''
+          }
+        ],
+        ppc: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        workshop: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        certification: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        aeca: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        languages: [
+          {
+            description: ''
+          }
+        ],
+        technical_skills: {
+          operating_systems: '',
+          programming_languages: '',
+          database_client_server_technologies: '',
+          software_tools: '',
+          web_applications: '',
+          others: ''
+        },
+        volunteer_work: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        community_work: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        hobbies: [
+          {
+            description: ''
+          }
+        ],
+        memberships: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        leadership_experience: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        international_study_exchange_program: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        summer_school_program: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        scholarships_fellowships: [
+          {
+            description: '',
+            date: ''
+          }
+        ]
+      },
+      searchemail: '',
+      profiles: [],
+      changes: {initial:'no changes'},
+      changesFormatted:'',
+      default_cv: {
+        basic: {
+          firstname: '',
+          lastname: '',
+          address: '',
+          email: '',
+          phone: ''
+        },
+        objective: '',
+        education: {
+          pg: [{
+            degreename: '',
+            ranking: '',
+            collegename: '',
+            cgpa: '',
+            cgpascale: '',
+            year: ''
+          }],
+          degree: {
+            degreename: '',
+            ranking: '',
+            collegename: '',
+            cgpa: '',
+            cgpascale: '',
+            year: ''
+          },
+          twelth: {
+            schoolname: '',
+            cgpa: '',
+            cgpascale: '',
+            year: ''
+          },
+          tenth: {
+            schoolname: '',
+            cgpa: '',
+            cgpascale: '',
+            year: ''
+          }
+        },
+        research_interests: '',
+        coursework_taken: '',
+        professional_development: [
+          {
+            company: '',
+            aboutcompany: '',
+            from: '',
+            till: '',
+            designation: '',
+            rolesandresponsibilities: '',
+            achievements: '',
+            projecttitle: '',
+            goal: '',
+            methodology: '',
+            result: ''
+          }
+        ],
+        internship: [
+          {
+            title: '',
+            from: '',
+            to: '',
+            companydescription: '',
+            projecttitle: '',
+            description1: '',
+            description2: ''
+          }
+        ],
+        research_experience: [
+          {
+            title: '',
+            from: '',
+            to: '',
+            description1: '',
+            description2: ''
+          }
+        ],
+        ugproject: [
+          {
+            title: '',
+            from: '',
+            to: '',
+            description1: '',
+            description2: '',
+            result: ''
+          }
+        ],
+        courseproject: [
+          {
+            title: '',
+            from: '',
+            to: '',
+            description1: '',
+            description2: ''
+          }
+        ],
+        ppc: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        workshop: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        certification: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        aeca: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        languages: [
+          {
+            description: ''
+          }
+        ],
+        technical_skills: {
+          operating_systems: '',
+          programming_languages: '',
+          database_client_server_technologies: '',
+          software_tools: '',
+          web_applications: '',
+          others: ''
+        },
+        volunteer_work: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        community_work: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        hobbies: [
+          {
+            description: ''
+          }
+        ],
+        memberships: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        leadership_experience: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        international_study_exchange_program: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        summer_school_program: [
+          {
+            description: '',
+            date: ''
+          }
+        ],
+        scholarships_fellowships: [
+          {
+            description: '',
+            date: ''
+          }
+        ]
+      },
+      rules: {
+        required: value => !!value || 'Required',
+        counter: value => value.length == 12 || '12 digits',
+        cgpa: value => { if(value.split(".")[1] && value.split(".")[1].length <= 2) return true; else return '2 digits after . only'},
+        maxoptions: value => { if(value.split(",") && value.split(",").length <=5) return true; else return 'Max 5 options only'},
+        email: value => {
+          const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+          return pattern.test(value) || 'Invalid e-mail.'
+        }
+      },
+      cv_html: ''
+    }
+  },
+  methods: {
+    //post request ot get all existing users email
+    getAllUsers: function () {
+      // axios.post('http://127.0.0.1:3000/admin/allusers', {})
+      axios.post('/admin/allusers', {})
+      .then(response => {
+        if(response.data){
+          var profs = []
+          response.data.forEach(function(item,index){
+            profs.push(item.email)
+          });
+          this.profiles = profs
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    },
+    //post request to retrieve cv of the user
+    retrieveCv: function () {
+      // axios.post('http://127.0.0.1:3000/retrieve_cv', { email: this.searchemail })
+      axios.post('/retrieve_cv', { email: this.searchemail })
+      .then(response => {
+        if(response.data=="no data"){
+          console.log("No user data")
+          this.cv = JSON.parse(JSON.stringify(this.default_cv))
+          this.message=[]
+          this.changeslogall=[]
+          this.changesloguser=[]
+          this.changeslogeditor=[]
+          this.retrieveMessage()
+        }else{
+          // console.log(response.data)
+          this.email = response.data.email
+          this.cv = response.data.cv
+          this.changes = response.data.changes
+          this.message=[]
+          this.changeslogall=[]
+          this.changesloguser=[]
+          this.changeslogeditor=[]
+          this.retrieveMessage()
+        }
+        //console.log(this.cv)
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    },
+    //post request to submit cv of the user
+    submitCv: function () {
+      this.pdfbutton = false;
+      this.docbutton = false;
+      if (this.validateCv() === false)
+        return;
+      else
+        this.cvloadingmsg = true;
+        // axios.post('http://127.0.0.1:3000/submit_cv', {email: this.email,cv: this.cv,changes: this.changes, edited_by:"editor"})
+        axios.post('/submit_cv', {email: this.email,cv: this.cv,changes: this.changes, edited_by:"editor"})
+        .then(response => {
+          console.log(response.data);
+          this.convert_doc_pdf();
+          this.cvloadingmsg = false;
+          this.pdfbutton = true;
+          this.docbutton = true;
+          this.retrieveMessage()
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    //function to check validation in the cv
+    validateCv: function () {
+      var cv = this.cv;
+      var requiredFields = {
+        "basic.firstname": cv.basic.firstname,
+        "basic.lastname": cv.basic.lastname,
+        "basic.address": cv.basic.address,
+        "basic.email": cv.basic.email,
+        "basic.phone": cv.basic.phone,
+        "objective": cv.objective,
+        "education.twelth.schoolname": cv.education.twelth.schoolname,
+        "education.twelth.cgpa": cv.education.twelth.cgpa,
+        "education.twelth.cgpascale": cv.education.twelth.cgpascale,
+        "education.twelth.year": cv.education.twelth.year,
+        "education.tenth.schoolname": cv.education.tenth.schoolname,
+        "education.tenth.cgpa": cv.education.tenth.cgpa,
+        "education.tenth.cgpascale": cv.education.tenth.cgpascale,
+        "education.tenth.year": cv.education.tenth.year
+      };
+      for (var field in requiredFields) {
+        if (requiredFields[field] === '') {
+          alert("Please fill " + this.format_changed_fields_title(field));
+          return false;
+        }
+      }
+      for (var field of ["professional_development","internship","research_experience","ugproject","courseproject"]){
+        for(var item of this.cv[field]){
+          if(field == "professional_development"){
+            if(item.company || item.aboutcompany || item.designation || item.rolesandresponsibilities || item.achievements || item.projecttitle || item.goal || item.methodology || item.result){
+              if(!item.from){
+                alert("Please fill " + this.format_changed_fields_title(field) + " dates properly");
+                return false;
+              }
+              else {
+                var from_date=new Date(item.from)
+                if(item.till)
+                  var to_date=new Date(item.till)
+                else
+                  var to_date=new Date()
+                if(from_date>to_date){
+                  alert("Please fill " + this.format_changed_fields_title(field) + " dates properly");
+                  return false;
+                }
+              }
+            }
+          }
+          else {
+            if(item.title || item.companydescription || item.projecttitle || item.description1 || item.description2 || item.result){
+              if(!item.from){
+                alert("Please fill " + this.format_changed_fields_title(field) + " dates properly");
+                return false;
+              }
+              else {
+                var from_date=new Date(item.from)
+                if(item.to)
+                  var to_date=new Date(item.to)
+                else
+                  var to_date=new Date()
+                if(from_date>to_date){
+                  alert("Please fill " + this.format_changed_fields_title(field) + " dates properly");
+                  return false;
+                }
+              }
+            }
+          }
+        }
+      }
+      for (var field of ["ppc","workshop","certification","aeca","volunteer_work","community_work","memberships","leadership_experience","international_study_exchange_program","summer_school_program","scholarships_fellowships"]){
+        for(var item of this.cv[field]){
+          if(item.description && !item.date){
+            alert("Please fill " + this.format_changed_fields_title(field) + " dates properly");
+            return false;
+          }
+        }
+      }
+      return true;
+    },
+    //post request to retrieve messages sent by the editor
+    retrieveMessage: function () {
+      // axios.post('http://127.0.0.1:3000/retrieve_message', { email: this.searchemail })
+      axios.post('/retrieve_message', { email: this.searchemail })
+      .then(response => {
+        if(response.data=="no data"){
+          this.message = []
+          console.log("No messages")
+          this.show_changeslogs()
+        }else{
+          var m=0
+          this.message = []
+          for(m=response.data.length-1;m>=0;m--){
+            this.edit_messages(response.data[m])
+          }
+          this.show_changeslogs()
+        }
+        //console.log(this.cv)
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    },
+    //post request to send message to the user
+    submitMessage: function () {
+      // axios.post('http://127.0.0.1:3000/admin/message', {email: this.messageemail,message: this.msg})
+      axios.post('/admin/message', {email: this.messageemail,message: this.msg})
+      .then(response => {
+        console.log(response.data)
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    },
+    //function to show the changes compared to previous cv
+    show_changes: function() {
+      var obj = this.changes
+      var result = "";
+      for (var p in obj) {
+        if( obj.hasOwnProperty(p) ) {
+          if(Array.isArray(obj[p])){
+            result += this.format_changed_fields_title(p) + " - " + "details have been edited\n";
+          }else{
+            result += this.format_changed_fields_title(p) + " - " + obj[p] + "\n";
+          }
+        }
+      }
+      this.changesFormatted = result
+      this.snackbar = true;
+    },
+    //function to show the changes in changeslogs
+    edit_changeslogs: function(log) {
+      var obj = log
+      var result = "";
+      var edited_by = "";
+      for (var p in obj) {
+        if( obj.hasOwnProperty(p) ) {
+          if(p=="edited_by"){
+            if(obj[p]=="editor"){
+              edited_by = "editor"
+            }else{
+              edited_by = "user"
+            }
+          }
+          if(Array.isArray(obj[p])){
+            result += this.format_changed_fields_title(p) + " - " + "details have been edited\n";
+          }else{
+            result += this.format_changed_fields_title(p) + " - " + obj[p] + "\n";
+          }
+        }
+      }
+      this.changeslogall.push(result)
+      if(edited_by == "user"){
+        this.changesloguser.push(result)
+      }else if(edited_by == "editor"){
+        this.changeslogeditor.push(result)
+      }
+    },
+    //function to show message
+    edit_messages: function(msg) {
+      var obj = msg
+      var result = "";
+      for (var p in obj) {
+        if( obj.hasOwnProperty(p) ) {
+          result += this.format_changed_fields_title(p) + " - " + obj[p] + "\n";
+        }
+      }
+      this.message.push(result)
+    },
+    //post request to retrieve change logs
+    show_changeslogs: function() {
+      // axios.post('http://127.0.0.1:3000/retrieve_changeslogs', { email: this.searchemail })
+      axios.post('/retrieve_changeslogs', { email: this.searchemail })
+      .then(response => {
+        if(response.data=="no data"){
+          this.changeslogall = []
+          this.changesloguser = []
+          this.changeslogeditor = []
+          console.log("No Change Logs")
+        }else{
+          var l=0
+          this.changeslogall = []
+          this.changesloguser = []
+          this.changeslogeditor = []
+          for(l=response.data.length-1;l>=0;l--){
+            this.edit_changeslogs(response.data[l])
+          }
+        }
+        //console.log(this.cv)
+        console.clear()
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    },
+    //function to sort out list of all, user and editor changes
+    sort_profile_changes (e) {
+      if(e=="all"){
+        this.profilechangesbyall = true;this.profilechangesbyuser = false;this.profilechangesbyeditor = false;
+      }else if(e=="user"){
+        this.profilechangesbyuser = true;this.profilechangesbyall = false;this.profilechangesbyeditor = false;
+      }else if(e=="editor"){
+        this.profilechangesbyeditor = true;this.profilechangesbyuser = false;this.profilechangesbyall= false;
+      }
+    },
+    //funtion to convert json keys to user readable titles
+    format_changed_fields_title: function (field) {
+      switch(field) {
+        case 'basic.firstname':
+            return "FIRSTNAME"
+            break;
+        case 'basic.lastname':
+            return "LASTNAME"
+            break;
+        case 'basic.address':
+            return "ADDRESS"
+            break;
+        case 'basic.email':
+            return "EMAIL"
+            break;
+        case 'basic.phone':
+            return "PHONE"
+            break;
+        case 'objective':
+            return "OBJECTIVE"
+            break;
+        case 'education.pg':
+            return "PG"
+            break;
+        case 'education.degree.degreename':
+            return "UG DEGREE NAME"
+            break;
+        case 'education.degree.ranking':
+            return "UG DEGREE RANK"
+            break;
+        case 'education.degree.collegename':
+            return "UG DEGREE COLLEGE NAME"
+            break;
+        case 'education.degree.cgpa':
+            return "UG DEGREE SCORE"
+            break;
+        case 'education.degree.cgpascale':
+            return "UG DEGREE SCORE SCALE"
+            break;
+        case 'education.degree.year':
+            return "UG DEGREE YEAR OF PASSING"
+            break;
+        case 'education.twelth.schoolname':
+            return "TWELTH SCHOOL NAME"
+            break;
+        case 'education.twelth.cgpa':
+            return "TWELTH SCORE"
+            break;
+        case 'education.twelth.cgpascale':
+            return "TWELTH SCORE SCALE"
+            break;
+        case 'education.twelth.year':
+            return "TWELTH YEAR OF PASSING"
+            break;
+        case 'education.tenth.schoolname':
+            return "TENTH SCHOOL NAME"
+            break;
+        case 'education.tenth.cgpa':
+            return "TENTH SCORE"
+            break;
+        case 'education.tenth.cgpascale':
+            return "TENTH SCORE SCALE"
+            break;
+        case 'education.tenth.year':
+            return "TENTH YEAR OF PASSING"
+            break;
+        case 'research_interests':
+            return "RESEARCH INTERESTS"
+            break;
+        case 'coursework_taken':
+            return "COURSEWORK TAKEN"
+            break;
+        case 'professional_development':
+            return "PROFESSIONAL EXPERIENCE"
+            break;
+        case 'internship':
+            return "INTERNSHIP"
+            break;
+        case 'research_experience':
+            return "RESEARCH EXPERIENCE"
+            break;
+        case 'ugproject':
+            return "UG PROJECT"
+            break;
+        case 'courseproject':
+            return "COURSE PROJECT"
+            break;
+        case 'ppc':
+            return "PUBLICATIONS/PRESENTATIONS/CONFERENCES"
+            break;
+        case 'workshop':
+            return "WORKSHOPS"
+            break;
+        case 'certification':
+            return "CERTIFICATION"
+            break;
+        case 'aeca':
+            return "AWARDS EXTRA CURRICULAR ACTIVITIES"
+            break;
+        case 'languages':
+            return "LANGUAGES"
+            break;
+        case 'technical_skills.operating_systems':
+            return "OPERATING SYSTEMS"
+            break;
+        case 'technical_skills.programming_languages':
+            return "PROGRAMMING LANGUAGES"
+            break;
+        case 'technical_skills.database_client_server_technologies':
+            return "DATABASE CLIENT SERVER TECHNOLOGIES"
+            break;
+        case 'technical_skills.software_tools':
+            return "SOFTWARE TOOLS"
+            break;
+        case 'technical_skills.web_applications':
+            return "WEB APPLICATIONS"
+            break;
+        case 'technical_skills.others':
+            return "OTHER TECHNICAL SKILLS"
+            break;
+        case 'volunteer_work':
+            return "VOLUNTEERING EXPERIENCE"
+            break;
+        case 'community_work':
+            return "COMMUNITY WORK"
+            break;
+        case 'hobbies':
+            return "HOBBIES"
+            break;
+        case 'memberships':
+            return "MEMBERSHIPS"
+            break;
+        case 'leadership_experience':
+            return "LEADERSHIP EXPERIENCE"
+            break;
+        case 'international_study_exchange_program':
+            return "INTERNATIONAL STUDY"
+            break;
+        case 'summer_school_program':
+            return "SUMMER SCHOOL"
+            break;
+        case 'scholarships_fellowships':
+            return "SCHOLARSHIPS AND FELLOWSHIPS"
+            break;
+        case 'last_updated':
+            return "LAST UPDATED"
+            break;
+        case 'time':
+            return "TIME"
+            break;
+        case 'msg':
+            return "MESSAGE"
+            break;
+        case 'field':
+            return "FIELD"
+            break;
+        case 'edited_by':
+            return "EDITED BY"
+            break;
+        default:
+            return 0
+      }
+    },
+    //function to format date in mmm yyyy format
+    format_date: function (d) {
+      var month = d[0]
+      var year = d[1]
+      switch(month) {
+        case '01':
+            return "Jan"+" "+year
+            break;
+        case '02':
+            return "Feb"+" "+year
+            break;
+        case '03':
+            return "Mar"+" "+year
+            break;
+        case '04':
+            return "Apr"+" "+year
+            break;
+        case '05':
+            return "May"+" "+year
+            break;
+        case '06':
+            return "Jun"+" "+year
+            break;
+        case '07':
+            return "Jul"+" "+year
+            break;
+        case '08':
+            return "Aug"+" "+year
+            break;
+        case '09':
+            return "Sep"+" "+year
+            break;
+        case '10':
+            return "Oct"+" "+year
+            break;
+        case '11':
+            return "Nov"+" "+year
+            break;
+        case '12':
+            return "Dec"+" "+year
+            break;
+        default:
+            return 0
+      }
+    },
+    //function to check date is empty
+    check_date_empty: function (d) {
+      if(d=="" || d==null){
+        return "Present"
+      }else{
+        return this.format_date(d.split("-").reverse())
+      }
+    },
+    //refresh page
+    refreshpage: function () {
+      location.reload()
+    },
+    //function to convert to list
+    convert_to_list: function (s) {
+      var sentences = s.replace(/\.\s+/g,'.|').replace(/\?\s/g,'?|').replace(/\!\s/g,'!|').split("|");
+      return sentences
+    },
+    sort_by_to_date: function (c) {
+      c.sort(function(a, b) {
+        if(a.to)
+          var date1 = new Date(a.to);
+        else if(a.till)
+          var date1 = new Date(a.till);
+        else
+          var date1 = new Date();
+        if(b.to)
+          var date2 = new Date(b.to);
+        else if(b.till)
+          var date2 = new Date(b.till);
+        else
+          var date2 = new Date();
+        if (date1 > date2) return -1;
+        if (date1 < date2) return 1;
+        return 0;
+      });
+      return c;
+    },
+    sort_by_date: function (c) {
+      c.sort(function(a, b) {
+        if(a.date)
+          var date1 = new Date(a.date);
+        else if (a.year)
+          var date1 = new Date(a.year);
+        else
+          var date1 = new Date();
+        if(b.date)
+          var date2 = new Date(b.date);
+        else if (b.year)
+          var date2 = new Date(b.year);
+        else
+          var date2 = new Date();
+        if (date1 > date2) return -1;
+        if (date1 < date2) return 1;
+        return 0;
+      });
+      return c;
+    },
+    //function to prepare data in doc and pdf format
+    convert_doc_pdf: function () {
+      var z=0
+      var y=0
+      var lists=[]
+      var tableStart='<table border=0 width="100%">'
+      var tableEnd='</table>'
+      var exportContent='<div></div>'
+      this.cv_html=''
+      this.cv_html+='<html><head><title>CV</title>'
+      this.cv_html+='<meta charset="utf-8">'
+      this.cv_html+='<meta name="viewport" content="width=device-width, initial-scale=1">'
+      this.cv_html+='<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></scr'+'ipt>'
+      this.cv_html+='<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">'
+      this.cv_html+='<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></scr'+'ipt>'
+      this.cv_html+='<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></scr'+'ipt>'
+      this.cv_html+='<style>p{margin:0px;}.first-last-name{font-family: Arial; font-size: 12px;} .field-description{font-family: Arial;font-size: 10px;} .heading{font-family: Arial;font-size: 10px;}.grid-container {display: grid;grid-template-columns: 500px 168px 168px;}.grid-container2 {display: grid;grid-template-columns: 668px 168px;}</style>'
+      this.cv_html+='</head>'
+      this.cv_html+='<body contenteditable>'
+      this.cv_html+='<div class="container">'
+      //basic
+      if(this.cv.basic.firstname  && this.cv.basic.lastname  && this.cv.basic.email  && this.cv.basic.phone  && this.cv.basic.address ) {
+        exportContent+='<p class="first-last-name" align="center"><b>'+this.cv.basic.firstname+' '+this.cv.basic.lastname+'</b></p>'+'<p class="field-description" align="center">'+this.cv.basic.address+'</p>'+'<p class="field-description" align="center"><b>Email: </b>'+this.cv.basic.email+', <b>Phone: </b>+'+this.cv.basic.phone+'</p><br>'
+        this.cv_html+='<p class="first-last-name" align="center"><b>'+this.cv.basic.firstname+' '+this.cv.basic.lastname+'</b></p>'+'<p class="field-description" align="center">'+this.cv.basic.address+'</p>'+'<p class="field-description" align="center"><b>Email: </b>'+this.cv.basic.email+', <b>Phone: </b>+'+this.cv.basic.phone+'</p>'
+      }
+      //objective
+      if(this.cv.objective ) {
+        exportContent+='<p class="heading" align="left"><b>OBJECTIVE</b><p class="field-description" align="left">'+this.cv.objective+'</p><br>'
+        this.cv_html+='<br>'
+        this.cv_html+='<p class="heading" align="left"><b>OBJECTIVE</b></p><p class="field-description" align="left">'+this.cv.objective+'</p>'
+      }
+      //education
+      if(this.cv.education.degree.degreename || this.cv.education.twelth.schoolname || this.cv.education.tenth.schoolname){
+        exportContent+=tableStart
+        exportContent+='<tr><td class="heading" align="left"><b>EDUCATION</b></td></tr>'
+        this.cv_html+='<br>'
+        this.cv_html+='<p class="heading" align="left"><b>EDUCATION</b></p>'
+      }
+      //PG degree
+      this.cv.education.pg = this.sort_by_date(this.cv.education.pg)
+      for(z=0;z<this.cv.education.pg.length;z++){
+        if(this.cv.education.pg[z].degreename && this.cv.education.pg[z].collegename && this.cv.education.pg[z].cgpa && this.cv.education.pg[z].cgpascale && this.cv.education.pg[z].year){
+          exportContent+='<tr><td class="field-description"><b>'+this.cv.education.pg[z].degreename+'</b></td></tr>'
+          this.cv_html+='<div class="grid-container2">'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="left"><b>'+this.cv.education.pg[z].degreename+'</b></p></div>'
+          this.cv_html+='</div>'
+          exportContent+='<tr><td width="50%" class="field-description">'+this.cv.education.pg[z].collegename+'</td>'
+          this.cv_html+='<div class="grid-container">'
+          this.cv_html+='<div class="grid-item"><p class="field-description">'+this.cv.education.pg[z].collegename+'</p></div>'
+          exportContent+='<td width="20%" class="field-description" align="center">'+this.cv.education.pg[z].cgpa+'/'+this.cv.education.pg[z].cgpascale+'</td>'
+          this.cv_html+='<div class="grid-item" align="center"><p class="field-description">'+this.cv.education.pg[z].cgpa+'/'+this.cv.education.pg[z].cgpascale+'</p></div>'
+          exportContent+='<td  width="30%" align="right" class="field-description">'+this.format_date(this.cv.education.pg[z].year.split("-").reverse())+'</td></tr>'
+          this.cv_html+='<div class="grid-item" align="right"><p class="field-description">'+this.format_date(this.cv.education.pg[z].year.split("-").reverse())+'</p></div>'
+          this.cv_html+='</div>'
+          if(this.cv.education.pg[z].ranking ){
+            exportContent+='<tr><td class="field-description">Rank-'+this.cv.education.pg[z].ranking+'</td></tr>'
+            this.cv_html+='<div class="grid-item"><p class="field-description">Rank- '+this.cv.education.pg[z].ranking+'</p></div>'
+          }
+        }
+      }
+      //UG degree
+      if(this.cv.education.degree.degreename && this.cv.education.degree.collegename && this.cv.education.degree.cgpa && this.cv.education.degree.cgpascale && this.cv.education.degree.year){
+        exportContent+='<tr><td class="field-description"><b>'+this.cv.education.degree.degreename+'</b></td></tr>'
+        this.cv_html+='<div class="grid-container2">'
+        this.cv_html+='<div class="grid-item"><p class="field-description" align="left"><b>'+this.cv.education.degree.degreename+'</b></p></div>'
+        this.cv_html+='</div>'
+        exportContent+='<tr><td width="50%" class="field-description">'+this.cv.education.degree.collegename+'</td>'
+        this.cv_html+='<div class="grid-container">'
+        this.cv_html+='<div class="grid-item"><p class="field-description">'+this.cv.education.degree.collegename+'</p></div>'
+        exportContent+='<td width="20%" class="field-description" align="center">'+this.cv.education.degree.cgpa+'/'+this.cv.education.degree.cgpascale+'</td>'
+        this.cv_html+='<div class="grid-item" align="center"><p class="field-description">'+this.cv.education.degree.cgpa+'/'+this.cv.education.degree.cgpascale+'</p></div>'
+        exportContent+='<td width="30%" class="field-description" align="right">'+this.format_date(this.cv.education.degree.year.split("-").reverse())+'</td></tr>'
+        this.cv_html+='<div class="grid-item" align="right"><p class="field-description">'+this.format_date(this.cv.education.degree.year.split("-").reverse())+'</p></div>'
+        this.cv_html+='</div>'
+        if(this.cv.education.degree.ranking ){
+          exportContent+='<tr><td class="field-description">Rank-'+this.cv.education.degree.ranking+'</td></tr>'
+          this.cv_html+='<div class="grid-item"><p class="field-description">Rank- '+this.cv.education.degree.ranking+'</p></div>'
+        }
+      }
+      //12th grade
+      if(this.cv.education.twelth.schoolname && this.cv.education.twelth.cgpa && this.cv.education.twelth.cgpascale && this.cv.education.twelth.year){
+        exportContent+='<tr><td width="50%" class="field-description"><b>12th grade,</b> '+this.cv.education.twelth.schoolname+'</td>'
+        this.cv_html+='<div class="grid-container">'
+        this.cv_html+='<div class="grid-item"><p class="field-description"><b>12th grade,</b> '+this.cv.education.twelth.schoolname+'</p></div>'
+        exportContent+='<td width="20%" class="field-description" align="center">'+this.cv.education.twelth.cgpa+'/'+this.cv.education.twelth.cgpascale+'</td>'
+        this.cv_html+='<div class="grid-item" align="center"><p class="field-description">'+this.cv.education.twelth.cgpa+'/'+this.cv.education.twelth.cgpascale+'</p></div>'
+        exportContent+='<td width="30%" class="field-description" align="right">'+this.format_date(this.cv.education.twelth.year.split("-").reverse())+'</td></tr>'
+        this.cv_html+='<div class="grid-item" align="right"><p class="field-description">'+this.format_date(this.cv.education.twelth.year.split("-").reverse())+'</p></div>'
+        this.cv_html+='</div>'
+      }
+      // //10th grade
+      if(this.cv.education.tenth.schoolname && this.cv.education.tenth.cgpa && this.cv.education.tenth.cgpascale && this.cv.education.tenth.year){
+        exportContent+='<tr><td width="50%" class="field-description"><b>10th grade,</b> '+this.cv.education.tenth.schoolname+'</td>'
+        this.cv_html+='<div class="grid-container">'
+        this.cv_html+='<div class="grid-item"><p class="field-description"><b>10th grade,</b> '+this.cv.education.tenth.schoolname+'</p></div>'
+        exportContent+='<td width="20%" class="field-description" align="center">'+this.cv.education.tenth.cgpa+'/'+this.cv.education.tenth.cgpascale+'</td>'
+        this.cv_html+='<div class="grid-item" align="center"><p class="field-description">'+this.cv.education.tenth.cgpa+'/'+this.cv.education.tenth.cgpascale+'</p></div>'
+        exportContent+='<td width="30%" class="field-description" align="right">'+this.format_date(this.cv.education.tenth.year.split("-").reverse())+'</td></tr>'
+        this.cv_html+='<div class="grid-item" align="right"><p class="field-description">'+this.format_date(this.cv.education.tenth.year.split("-").reverse())+'</p></div>'
+        this.cv_html+='</div>'
+      }
+      if(this.cv.education.degree.degreename || this.cv.education.twelth.schoolname || this.cv.education.tenth.schoolname){
+        exportContent+=tableEnd
+      }
+      exportContent+='<br>'
+      //research interests
+      if(this.cv.research_interests){
+        exportContent+='<p class="heading" align="left"><b>RESEARCH INTERESTS: </b>'+this.cv.research_interests+'</p><br>'
+        this.cv_html+='<br>'
+        this.cv_html+='<p class="heading" align="left"><b>RESEARCH INTERESTS: </b>'+this.cv.research_interests+'</p>'
+      }
+      //coursework taken
+      if(this.cv.coursework_taken){
+        exportContent+='<p class="heading" align="left"><b>COURSEWORK TAKEN: </b>'+this.cv.coursework_taken+'</p><br>'
+        this.cv_html+='<br>'
+        this.cv_html+='<p class="heading" align="left"><b>COURSEWORK TAKEN: </b>'+this.cv.coursework_taken+'</p>'
+      }
+      //professional experience
+      if(this.cv.professional_development[0].company && this.cv.professional_development[0].aboutcompany && this.cv.professional_development[0].from && this.cv.professional_development[0].designation && this.cv.professional_development[0].rolesandresponsibilities){
+        exportContent+='<p class="heading" align="left"><b>PROFESSIONAL EXPERIENCE</b></p>'
+        this.cv_html+='<br>'
+        this.cv_html+='<p class="heading" align="left"><b>PROFESSIONAL EXPERIENCE</b></p>'
+        this.cv.professional_development = this.sort_by_to_date(this.cv.professional_development)
+        for(z=0;z<this.cv.professional_development.length;z++){
+          if(!this.cv.professional_development[z].from || !this.cv.professional_development[z].rolesandresponsibilities){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Professional Experience");
+            continue;
+          }
+          exportContent+=tableStart
+          exportContent+='<tr><td width="75%" class="field-description"><b>'+this.cv.professional_development[z].company+'</b> - '+this.cv.professional_development[z].designation+'</td>'
+          this.cv_html+='<div class="grid-container2">'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="left"><b>'+this.cv.professional_development[z].company+'</b> - '+this.cv.professional_development[z].designation+'</p></div>'
+          exportContent+='<td width="25%" class="field-description" align="right"><b>'+this.format_date(this.cv.professional_development[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.professional_development[z].till)+'</b></td></tr>'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="right"><b>'+this.format_date(this.cv.professional_development[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.professional_development[z].till)+'</b></p></div>'
+          this.cv_html+='</div>'
+          exportContent+=tableEnd
+          if(this.cv.professional_development[z].aboutcompany){
+          exportContent+='<p class="field-description" align="left">-<i>'+this.cv.professional_development[z].aboutcompany+'</i></p>'
+          this.cv_html+='<p class="field-description" align="left">-<i>'+this.cv.professional_development[z].aboutcompany+'</i></p>'
+          }
+          exportContent+='<ul class="field-description" align="left">'
+          this.cv_html+='<ul class="field-description" align="left">'
+          if(this.cv.professional_development[z].rolesandresponsibilities){
+            lists=this.convert_to_list(this.cv.professional_development[z].rolesandresponsibilities)
+            for(y=0;y<lists.length;y++)
+            {
+              exportContent+='<li class="field-description">'+lists[y]+'</li>'
+              this.cv_html+='<li class="field-description">'+lists[y]+'</li>'
+            }
+          }
+          if(this.cv.professional_development[z].achievements){
+            exportContent+='<li class="field-description">'+this.cv.professional_development[z].achievements+'</li>'
+            this.cv_html+='<li class="field-description">'+this.cv.professional_development[z].achievements+'</li>'
+          }
+          if(this.cv.professional_development[z].projecttitle){
+            exportContent+='<li class="field-description">'+this.cv.professional_development[z].projecttitle+'</li>'
+            this.cv_html+='<li class="field-description">'+this.cv.professional_development[z].projecttitle+'</li>'
+          }
+          if(this.cv.professional_development[z].goal){
+            exportContent+='<li class="field-description">'+this.cv.professional_development[z].goal+'</li>'
+            this.cv_html+='<li class="field-description">'+this.cv.professional_development[z].goal+'</li>'
+          }
+          if(this.cv.professional_development[z].methodology){
+            exportContent+='<li class="field-description">'+this.cv.professional_development[z].methodology+'</li>'
+            this.cv_html+='<li class="field-description">'+this.cv.professional_development[z].methodology+'</li>'
+          }
+          if(this.cv.professional_development[z].result){
+            exportContent+='<li class="field-description">'+this.cv.professional_development[z].result+'</li>'
+            this.cv_html+='<li class="field-description">'+this.cv.professional_development[z].result+'</li>'
+          }
+          exportContent+='</ul>'
+          this.cv_html+='</ul>'
+        }
+      }
+      //internships
+      if(this.cv.internship[0].title && this.cv.internship[0].from && this.cv.internship[0].projecttitle && this.cv.internship[0].description1 && this.cv.internship[0].description2){
+        exportContent+='<br><p class="heading" align="left"><b>INTERNSHIPS</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>INTERNSHIPS</b></p>'
+        this.cv.internship = this.sort_by_to_date(this.cv.internship)
+        for(z=0;z<this.cv.internship.length;z++){
+          if(!this.cv.internship[z].from || !this.cv.internship[z].description2){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Internship");
+            continue;
+          }
+          exportContent+=tableStart
+          exportContent+='<tr><td width="75%" class="field-description"><b>'+this.cv.internship[z].title+'</b></td>'
+          this.cv_html+='<div class="grid-container2">'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="left"><b>'+this.cv.internship[z].title+'</b></p></div>'
+          exportContent+='<td width="25%" class="field-description" align="right"><b>'+this.format_date(this.cv.internship[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.internship[z].to)+'</b></td></tr>'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="right"><b>'+this.format_date(this.cv.internship[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.internship[z].to)+'</b></p></div>'
+          this.cv_html+='</div>'
+          exportContent+=tableEnd
+          exportContent+='<p class="field-description" align="left"><b>'+this.cv.internship[z].companydescription+'</b></p>'
+          this.cv_html+='<p class="field-description" align="left"><b>'+this.cv.internship[z].companydescription+'</b></p>'
+          exportContent+='<p class="field-description" align="left"><b>'+this.cv.internship[z].projecttitle+'</b></p>'
+          this.cv_html+='<p class="field-description" align="left"><b>'+this.cv.internship[z].projecttitle+'</b></p>'
+          exportContent+='<p class="field-description" align="left">'+this.cv.internship[z].description1+'</p>'
+          this.cv_html+='<p class="field-description" align="left">'+this.cv.internship[z].description1+'</p>'
+          exportContent+='<ul class="field-description" align="left">'
+          this.cv_html+='<ul class="field-description" align="left">'
+          lists=this.convert_to_list(this.cv.internship[z].description2)
+          for(y=0;y<lists.length;y++)
+          {
+            exportContent+='<li class="field-description">'+lists[y]+'</li>'
+            this.cv_html+='<li class="field-description">'+lists[y]+'</li>'
+          }
+          exportContent+='</ul>'
+          this.cv_html+='</ul>'
+        }
+      }
+      //research experience
+      if(this.cv.research_experience[0].title && this.cv.research_experience[0].from && this.cv.research_experience[0].description1 && this.cv.research_experience[0].description2){
+        exportContent+='<br><p class="heading" align="left"><b>RESEARCH EXPERIENCE</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>RESEARCH EXPERIENCE</b></p>'
+        this.cv.research_experience = this.sort_by_to_date(this.cv.research_experience)
+        for(z=0;z<this.cv.research_experience.length;z++){
+          if(!this.cv.research_experience[z].from || !this.cv.research_experience[z].description2){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Research Experience");
+            continue;
+          }
+          exportContent+=tableStart
+          exportContent+='<tr><td width="75%" class="field-description"><b>'+this.cv.research_experience[z].title+'</b></td>'
+          this.cv_html+='<div class="grid-container2">'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="left"><b>'+this.cv.research_experience[z].title+'</b></p></div>'
+          exportContent+='<td width="25%" class="field-description" align="right"><b>'+this.format_date(this.cv.research_experience[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.research_experience[z].to)+'</b></td></tr>'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="right"><b>'+this.format_date(this.cv.research_experience[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.research_experience[z].to)+'</b></p></div>'
+          this.cv_html+='</div>'
+          exportContent+=tableEnd
+          exportContent+='<p class="field-description" align="left">'+this.cv.research_experience[z].description1+'</p>'
+          this.cv_html+='<p class="field-description" align="left">'+this.cv.research_experience[z].description1+'</p>'
+          exportContent+='<ul class="field-description" align="left">'
+          this.cv_html+='<ul class="field-description" align="left">'
+          lists=this.convert_to_list(this.cv.research_experience[z].description2)
+          for(y=0;y<lists.length;y++)
+          {
+            exportContent+='<li class="field-description">'+lists[y]+'</li>'
+            this.cv_html+='<li class="field-description">'+lists[y]+'</li>'
+          }
+          exportContent+='</ul>'
+          this.cv_html+='</ul>'
+        }
+      }
+      //undergraduate project
+      if(this.cv.ugproject[0].title && this.cv.ugproject[0].from && this.cv.ugproject[0].description1 && this.cv.ugproject[0].description2){
+        exportContent+='<br><p class="heading" align="left"><b>UNDERGRADUATE PROJECT</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>UNDERGRADUATE PROJECT</b></p>'
+        this.cv.ugproject = this.sort_by_to_date(this.cv.ugproject)
+        for(z=0;z<this.cv.ugproject.length;z++){
+          if(!this.cv.ugproject[z].from || !this.cv.ugproject[z].description2){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Undergraduate project");
+            continue;
+          }
+          exportContent+=tableStart
+          exportContent+='<tr><td width="75%" class="field-description"><b>'+this.cv.ugproject[z].title+'</b></td>'
+          this.cv_html+='<div class="grid-container2">'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="left"><b>'+this.cv.ugproject[z].title+'</b></p></div>'
+          exportContent+='<td width="25%" class="field-description" align="right"><b>'+this.format_date(this.cv.ugproject[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.ugproject[z].to)+'</b></td></tr>'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="right"><b>'+this.format_date(this.cv.ugproject[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.ugproject[z].to)+'</b></p></div>'
+          this.cv_html+='</div>'
+          exportContent+=tableEnd
+          exportContent+='<p class="field-description" align="left">'+this.cv.ugproject[z].description1+'</p>'
+          this.cv_html+='<p class="field-description" align="left">'+this.cv.ugproject[z].description1+'</p>'
+          exportContent+='<ul class="field-description" align="left">'
+          this.cv_html+='<ul class="field-description" align="left">'
+          lists=this.convert_to_list(this.cv.ugproject[z].description2)
+          for(y=0;y<lists.length;y++)
+          {
+            exportContent+='<li class="field-description">'+lists[y]+'</li>'
+            this.cv_html+='<li class="field-description">'+lists[y]+'</li>'
+          }
+          exportContent+='<li class="field-description">'+this.cv.ugproject[z].result+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.ugproject[z].result+'</li>'
+          exportContent+='</ul>'
+          this.cv_html+='</ul>'
+        }
+      }
+      //course project
+      // this.cv_html+='<br>'
+      if(this.cv.courseproject[0].title && this.cv.courseproject[0].from && this.cv.courseproject[0].description1 && this.cv.courseproject[0].description2){
+        exportContent+='<br><p class="heading" align="left"><b>COURSE PROJECT</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>COURSE PROJECT</b></p>'
+        this.cv.courseproject = this.sort_by_to_date(this.cv.courseproject)
+        for(z=0;z<this.cv.courseproject.length;z++){
+          if(!this.cv.courseproject[z].from || !this.cv.courseproject[z].description2){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Course project");
+            continue;
+          }
+          exportContent+=tableStart
+          this.cv_html+='<div class="grid-container2">'
+          exportContent+='<tr><td width="75%" class="field-description"><b>'+this.cv.courseproject[z].title+'</b></td>'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="left"><b>'+this.cv.courseproject[z].title+'</b></p></div>'
+          exportContent+='<td width="25%" class="field-description" align="right"><b>'+this.format_date(this.cv.courseproject[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.courseproject[z].to)+'</b></td></tr>'
+          this.cv_html+='<div class="grid-item"><p class="field-description" align="right"><b>'+this.format_date(this.cv.courseproject[z].from.split("-").reverse())+' - '+this.check_date_empty(this.cv.courseproject[z].to)+'</b></p></div>'
+          this.cv_html+='</div>'
+          exportContent+=tableEnd
+          exportContent+='<p class="field-description" align="left">'+this.cv.courseproject[z].description1+'</p>'
+          this.cv_html+='<p class="field-description" align="left">'+this.cv.courseproject[z].description1+'</p>'
+          exportContent+='<ul class="field-description" align="left">'
+          this.cv_html+='<ul class="field-description" align="left">'
+          lists=this.convert_to_list(this.cv.courseproject[z].description2)
+          for(y=0;y<lists.length;y++)
+          {
+            exportContent+='<li class="field-description">'+lists[y]+'</li>'
+            this.cv_html+='<li class="field-description">'+lists[y]+'</li>'
+          }
+          exportContent+='</ul>'
+          this.cv_html+='</ul>'
+        }
+      }
+      //publications presentations and conferences
+      if(this.cv.ppc[0].description && this.cv.ppc[0].description!=null && this.cv.ppc[0].date && this.cv.ppc[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>PUBLICATIONS, PRESENTATIONS AND CONFERENCES</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>PUBLICATIONS, PRESENTATIONS AND CONFERENCES</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.ppc = this.sort_by_date(this.cv.ppc)
+        for(z=0;z<this.cv.ppc.length;z++){
+          if(!this.cv.ppc[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Publications Presentations and Conferences");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.ppc[z].description+' - '+this.format_date(this.cv.ppc[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.ppc[z].description+' - '+this.format_date(this.cv.ppc[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //workshop
+      if(this.cv.workshop[0].description && this.cv.workshop[0].description!=null && this.cv.workshop[0].date && this.cv.workshop[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>WORKSHOPS</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>WORKSHOPS</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.workshop = this.sort_by_date(this.cv.workshop)
+        for(z=0;z<this.cv.workshop.length;z++){
+          if(!this.cv.workshop[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Workshop");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.workshop[z].description+' - '+this.format_date(this.cv.workshop[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.workshop[z].description+' - '+this.format_date(this.cv.workshop[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //certifications
+      if(this.cv.certification[0].description && this.cv.certification[0].description!=null && this.cv.certification[0].date && this.cv.certification[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>CERTIFICATIONS</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>CERTIFICATIONS</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.certification = this.sort_by_date(this.cv.certification)
+        for(z=0;z<this.cv.certification.length;z++){
+          if(!this.cv.certification[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Certifications");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.certification[z].description+' - '+this.format_date(this.cv.certification[z].date.split("-").reverse())+'</li>'
+          // this.cv_html+='<li class="field-description"><div class="grid-container2"><div class="grid-item">'+this.cv.certification[z].description+'</div>'+'<div class="grid-item" align="right">'+this.format_date(this.cv.certification[z].date.split("-").reverse())+'</div></div></li>'
+          this.cv_html+='<li class="field-description">'+this.cv.certification[z].description+' - '+this.format_date(this.cv.certification[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //technical skills
+      // this.cv_html+='<br>'
+      if(this.cv.technical_skills.operating_systems || this.cv.technical_skills.programming_languages || this.cv.technical_skills.database_client_server_technologies || this.cv.technical_skills.software_tools || this.cv.technical_skills.others){
+        exportContent+='<br><p class="heading" align="left"><b>TECHNICAL SKILLS</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>TECHNICAL SKILLS</b></p>'
+      }
+      if(this.cv.technical_skills.operating_systems){
+        exportContent+='<p class="field-description" align="left"><b>Operating Systems: </b>'+this.cv.technical_skills.operating_systems+'</p>'
+        this.cv_html+='<p class="field-description" align="left"><b>Operating Systems: </b>'+this.cv.technical_skills.operating_systems+'</p>'
+      }
+      if(this.cv.technical_skills.programming_languages){
+        exportContent+='<p class="field-description" align="left"><b>Programming Languages: </b>'+this.cv.technical_skills.programming_languages+'</p>'
+        this.cv_html+='<p class="field-description" align="left"><b>Programming Languages: </b>'+this.cv.technical_skills.programming_languages+'</p>'
+      }
+      if(this.cv.technical_skills.database_client_server_technologies){
+        exportContent+='<p class="field-description" align="left"><b>Database and Client/Server Technologies: </b>'+this.cv.technical_skills.database_client_server_technologies+'</p>'
+        this.cv_html+='<p class="field-description" align="left"><b>Database and Client/Server Technologies: </b>'+this.cv.technical_skills.database_client_server_technologies+'</p>'
+      }
+      if(this.cv.technical_skills.software_tools){
+        exportContent+='<p class="field-description" align="left"><b>Software Tools: </b>'+this.cv.technical_skills.software_tools+'</p>'
+        this.cv_html+='<p class="field-description" align="left"><b>Software Tools: </b>'+this.cv.technical_skills.software_tools+'</p>'
+      }
+      if(this.cv.technical_skills.others){
+        exportContent+='<p class="field-description" align="left"><b>Others: </b>'+this.cv.technical_skills.others+'</p>'
+        this.cv_html+='<p class="field-description" align="left"><b>Others: </b>'+this.cv.technical_skills.others+'</p>'
+      }
+      //awards and extra curricular activities
+      if(this.cv.aeca[0].description && this.cv.aeca[0].description!=null && this.cv.aeca[0].date && this.cv.aeca[0].date!=null){
+        this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>AWARDS AND EXTRA CURRICULAR ACTIVITIES</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>AWARDS AND EXTRA CURRICULAR ACTIVITIES</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.aeca = this.sort_by_date(this.cv.aeca)
+        for(z=0;z<this.cv.aeca.length;z++){
+          if(!this.cv.aeca[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Awards and Extra Curricular Activities");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.aeca[z].description+' - '+this.format_date(this.cv.aeca[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.aeca[z].description+' - '+this.format_date(this.cv.aeca[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //languages
+      if(this.cv.languages[0].description && this.cv.languages[0].description!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>LANGUAGES</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>LANGUAGES</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        for(z=0;z<this.cv.languages.length;z++){
+          exportContent+='<li class="field-description">'+this.cv.languages[z].description+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.languages[z].description+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //volunteer work
+      if(this.cv.volunteer_work[0].description && this.cv.volunteer_work[0].description!=null  && this.cv.volunteer_work[0].date && this.cv.volunteer_work[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>VOLUNTEERING EXPERIENCE</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>VOLUNTEERING EXPERIENCE</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.volunteer_work = this.sort_by_date(this.cv.volunteer_work)
+        for(z=0;z<this.cv.volunteer_work.length;z++){
+          if(!this.cv.volunteer_work[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Volunteer Work");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.volunteer_work[z].description+' - '+this.format_date(this.cv.volunteer_work[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.volunteer_work[z].description+' - '+this.format_date(this.cv.volunteer_work[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //community work
+      if(this.cv.community_work[0].description && this.cv.community_work[0].description!=null && this.cv.community_work[0].date && this.cv.community_work[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>COMMUNITY WORK</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>COMMUNITY WORK</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.community_work = this.sort_by_date(this.cv.community_work)
+        for(z=0;z<this.cv.community_work.length;z++){
+          if(!this.cv.community_work[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Community Work");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.community_work[z].description+' - '+this.format_date(this.cv.community_work[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.community_work[z].description+' - '+this.format_date(this.cv.community_work[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //hobbies
+      if(this.cv.hobbies[0].description && this.cv.hobbies[0].description!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>HOBBIES</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>HOBBIES</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        for(z=0;z<this.cv.hobbies.length;z++){
+          exportContent+='<li class="field-description">'+this.cv.hobbies[z].description+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.hobbies[z].description+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //memberships
+      if(this.cv.memberships[0].description && this.cv.memberships[0].description!=null && this.cv.memberships[0].date && this.cv.memberships[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>MEMBERSHIPS</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>MEMBERSHIPS</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.memberships = this.sort_by_date(this.cv.memberships)
+        for(z=0;z<this.cv.memberships.length;z++){
+          if(!this.cv.memberships[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Memberships");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.memberships[z].description+' - '+this.format_date(this.cv.memberships[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.memberships[z].description+' - '+this.format_date(this.cv.memberships[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //leadership experience
+      if(this.cv.leadership_experience[0].description && this.cv.leadership_experience[0].description!=null && this.cv.leadership_experience[0].date && this.cv.leadership_experience[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>LEADERSHIP EXPERIENCE</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>LEADERSHIP EXPERIENCE</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.leadership_experience = this.sort_by_date(this.cv.leadership_experience)
+        for(z=0;z<this.cv.leadership_experience.length;z++){
+          if(!this.cv.leadership_experience[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Leadership Experience");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.leadership_experience[z].description+' - '+this.format_date(this.cv.leadership_experience[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.leadership_experience[z].description+' - '+this.format_date(this.cv.leadership_experience[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //international study or exchange program
+      if(this.cv.international_study_exchange_program[0].description && this.cv.international_study_exchange_program[0].description!=null && this.cv.international_study_exchange_program[0].date && this.cv.international_study_exchange_program[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>INTERNATIONAL STUDY OR EXCHANGE PROGRAM</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>INTERNATIONAL STUDY OR EXCHANGE PROGRAM</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.international_study_exchange_program = this.sort_by_date(this.cv.international_study_exchange_program)
+        for(z=0;z<this.cv.international_study_exchange_program.length;z++){
+          if(!this.cv.international_study_exchange_program[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for International Study or Exchange Program");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.international_study_exchange_program[z].description+' - '+this.format_date(this.cv.international_study_exchange_program[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.international_study_exchange_program[z].description+' - '+this.format_date(this.cv.international_study_exchange_program[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //summer school program
+      if(this.cv.summer_school_program[0].description && this.cv.summer_school_program[0].description!=null && this.cv.summer_school_program[0].date && this.cv.summer_school_program[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>SUMMER SCHOOL PROGRAM</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>SUMMER SCHOOL PROGRAM</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.summer_school_program = this.sort_by_date(this.cv.summer_school_program)
+        for(z=0;z<this.cv.summer_school_program.length;z++){
+          if(!this.cv.summer_school_program[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Summer School Program");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.summer_school_program[z].description+' - '+this.format_date(this.cv.summer_school_program[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.summer_school_program[z].description+' - '+this.format_date(this.cv.summer_school_program[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      //scholarships/fellowships
+      if(this.cv.scholarships_fellowships[0].description && this.cv.scholarships_fellowships[0].description!=null && this.cv.scholarships_fellowships[0].date && this.cv.scholarships_fellowships[0].date!=null){
+        // this.cv_html+='<br>'
+        exportContent+='<br><p class="heading" align="left"><b>SCHOLARSHIPS/FELLOWSHIPS</b></p>'
+        this.cv_html+='<p class="heading" align="left"><b>SCHOLARSHIPS/FELLOWSHIPS</b></p>'
+        exportContent+='<ul class="field-description" align="left">'
+        this.cv_html+='<ul class="field-description" align="left">'
+        this.cv.scholarships_fellowships = this.sort_by_date(this.cv.scholarships_fellowships)
+        for(z=0;z<this.cv.scholarships_fellowships.length;z++){
+          if(!this.cv.scholarships_fellowships[z].date){
+            this.cvloadingmsg = false;
+            alert("Dates or fields not entered for Scholarships or Fellowships");
+            continue;
+          }
+          exportContent+='<li class="field-description">'+this.cv.scholarships_fellowships[z].description+' - '+this.format_date(this.cv.scholarships_fellowships[z].date.split("-").reverse())+'</li>'
+          this.cv_html+='<li class="field-description">'+this.cv.scholarships_fellowships[z].description+' - '+this.format_date(this.cv.scholarships_fellowships[z].date.split("-").reverse())+'</li>'
+        }
+        exportContent+='</ul>'
+        this.cv_html+='</ul>'
+      }
+      exportContent+='</table>'
+      $('#exportContent').html(exportContent)
+      this.cv_html+='</div>'
+      this.cv_html+='<button type="button" id="save-pdf" onclick="savePDF()">Save PDF</button>'
+      this.cv_html+='<scr'+'ipt>'
+      this.cv_html+='function savePDF(){$("#save-pdf").hide();window.print();}'
+      this.cv_html+='</scr'+'ipt>'
+      this.cv_html+='</body>'
+      this.cv_html+='</html>'
+    },
+    //function to convert to pdf
+    open_pdf: function () {
+      //open cv html editable page in new tab using blob
+      var blob = new Blob([this.cv_html], {type: 'text/html'});
+      window.open(window.URL.createObjectURL(blob));
+      // this.pdfbutton = false
+    },
+    //function to call Export2Doc function
+    open_doc: function () {
+      //call convert to doc function
+      this.Export2Doc('exportContent','cv')
+      // this.docbutton = false
+    },
+    //function to convert to doc format
+    Export2Doc: function (element, filename = '') {
+      var preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML To Doc</title><style>.first-last-name{font-family: Arial; font-size: 17px;} .field-description{font-family: Arial;font-size: 14px;} .heading{font-family: Arial;font-size: 14px;}</style></head><body>"
+      var postHtml = "</body></html>"
+      var html = preHtml+document.getElementById(element).innerHTML+postHtml
+      var blob = new Blob(['\ufeff', html], {
+          type: 'application/msword'
+      });
+      // Specify link url
+      var url = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(html)
+      // Specify file name
+      filename = filename?filename+'.doc':'document.doc'
+      // Create download link element
+      var downloadLink = document.createElement("a")
+      document.body.appendChild(downloadLink)
+      if(navigator.msSaveOrOpenBlob ){
+          navigator.msSaveOrOpenBlob(blob, filename)
+      }else{
+          // Create a link to the file
+          downloadLink.href = url
+          // Setting the file name
+          downloadLink.download = filename
+          //triggering the function
+          downloadLink.click()
+      }
+      document.body.removeChild(downloadLink)
+    },
+    addNewPGForm: function () {
+      this.cv.education.pg.push({
+        degreename: '',
+        ranking: '',
+        collegename: '',
+        cgpa: '',
+        cgpascale: '',
+        year: ''
+      })
+    },
+    addNewProfessionalDevelopmentForm: function () {
+      this.cv.professional_development.push({
+        company: '',
+        aboutcompany: '',
+        from: '',
+        till: '',
+        designation: '',
+        rolesandresponsibilities: '',
+        achievements: '',
+        projecttitle: '',
+        goal: '',
+        methodology: '',
+        result: ''
+      })
+    },
+    addNewInternshipForm: function () {
+      this.cv.internship.push({
+        title: '',
+        from: '',
+        to: '',
+        companydescription: '',
+        projecttitle: '',
+        description1: '',
+        description2: ''
+      })
+    },
+    addNewResearchExperienceForm: function () {
+      this.cv.research_experience.push({
+        title: '',
+        from: '',
+        to: '',
+        description1: '',
+        description2: ''
+      })
+    },
+    addNewUgProjectForm: function () {
+      this.cv.ugproject.push({
+        title: '',
+        from: '',
+        to: '',
+        description1: '',
+        description2: '',
+        result: ''
+      })
+    },
+    addNewCourseProjectForm: function () {
+      this.cv.courseproject.push({
+        title: '',
+        from: '',
+        to: '',
+        description1: '',
+        description2: ''
+      })
+    },
+    addNewPpcForm: function () {
+      this.cv.ppc.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewWorkshopForm: function () {
+      this.cv.workshop.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewCertificationForm: function () {
+      this.cv.certification.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewAecaForm: function () {
+      this.cv.aeca.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewLanguagesForm: function () {
+      this.cv.languages.push({
+        description: ''
+      })
+    },
+    addNewVolunteerWorkForm: function () {
+      this.cv.volunteer_work.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewCommunityWorkForm: function () {
+      this.cv.community_work.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewHobbiesForm: function () {
+      this.cv.hobbies.push({
+        description: ''
+      })
+    },
+    addNewMembershipsForm: function () {
+      this.cv.memberships.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewLeadershipExperienceForm: function () {
+      this.cv.leadership_experience.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewInternationalStudyExchangeProgramForm: function () {
+      this.cv.international_study_exchange_program.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewSummerSchoolProgramForm: function () {
+      this.cv.summer_school_program.push({
+        description: '',
+        date: ''
+      })
+    },
+    addNewScholarshipsFellowshipsForm: function () {
+      this.cv.scholarships_fellowships.push({
+        description: '',
+        date: ''
+      })
+    },
+    deletePGForm: function (index) {
+      if(this.cv.education.pg.length > 1){
+        this.cv.education.pg.splice(index, 1)
+      }else{
+        this.cv.education.pg[index].degreename = ''
+        this.cv.education.pg[index].ranking = ''
+        this.cv.education.pg[index].collegename = ''
+        this.cv.education.pg[index].cgpa = ''
+        this.cv.education.pg[index].cgpascale = ''
+        this.cv.education.pg[index].year = ''
+      }
+    },
+    deleteProfessionalDevelopmentForm: function (index) {
+      if(this.cv.professional_development.length > 1){
+        this.cv.professional_development.splice(index, 1)
+      }else{
+        this.cv.professional_development[index].company = ''
+        this.cv.professional_development[index].aboutcompany = ''
+        this.cv.professional_development[index].from = ''
+        this.cv.professional_development[index].till = ''
+        this.cv.professional_development[index].designation = ''
+        this.cv.professional_development[index].rolesandresponsibilities = ''
+        this.cv.professional_development[index].achievements = ''
+        this.cv.professional_development[index].projecttitle = ''
+        this.cv.professional_development[index].goal = ''
+        this.cv.professional_development[index].methodology = ''
+        this.cv.professional_development[index].result = ''
+      }
+    },
+    deleteInternshipForm: function (index) {
+      if(this.cv.internship.length > 1){
+        this.cv.internship.splice(index, 1)
+      }else{
+        this.cv.internship[index].title = ''
+        this.cv.internship[index].from = ''
+        this.cv.internship[index].to = ''
+        this.cv.internship[index].companydescription = ''
+        this.cv.internship[index].projecttitle = ''
+        this.cv.internship[index].description1 = ''
+        this.cv.internship[index].description2 = ''
+      }
+    },
+    deleteResearchExperienceForm: function (index) {
+      if(this.cv.research_experience.length > 1){
+        this.cv.research_experience.splice(index, 1)
+      }else{
+        this.cv.research_experience[index].title = ''
+        this.cv.research_experience[index].from = ''
+        this.cv.research_experience[index].to = ''
+        this.cv.research_experience[index].description1 = ''
+        this.cv.research_experience[index].description2 = ''
+      }
+    },
+    deleteUgProjectForm: function (index) {
+      if(this.cv.ugproject.length > 1){
+        this.cv.ugproject.splice(index, 1)
+      }else{
+        this.cv.ugproject[index].title = ''
+        this.cv.ugproject[index].from = ''
+        this.cv.ugproject[index].to = ''
+        this.cv.ugproject[index].description1 = ''
+        this.cv.ugproject[index].description2 = ''
+        this.cv.ugproject[index].result = ''
+      }
+    },
+    deleteCourseProjectForm: function (index) {
+      if(this.cv.courseproject.length > 1){
+        this.cv.courseproject.splice(index, 1)
+      }else{
+        this.cv.courseproject[index].title = ''
+        this.cv.courseproject[index].from = ''
+        this.cv.courseproject[index].to = ''
+        this.cv.courseproject[index].description1 = ''
+        this.cv.courseproject[index].description2 = ''
+      }
+    },
+    deletePpcForm: function (index) {
+      if(this.cv.ppc.length > 1){
+        this.cv.ppc.splice(index, 1)
+      }else{
+        this.cv.ppc[index].description = ''
+        this.cv.ppc[index].date = ''
+      }
+    },
+    deleteWorkshopForm: function (index) {
+      if(this.cv.workshop.length > 1){
+        this.cv.workshop.splice(index, 1)
+      }else{
+        this.cv.workshop[index].description = ''
+        this.cv.workshop[index].date = ''
+      }
+    },
+    deleteCertificationForm: function (index) {
+      if(this.cv.certification.length > 1){
+        this.cv.certification.splice(index, 1)
+      }else{
+        this.cv.certification[index].description = ''
+        this.cv.certification[index].date = ''
+      }
+    },
+    deleteAecaForm: function (index) {
+      if(this.cv.aeca.length > 1){
+        this.cv.aeca.splice(index, 1)
+      }else{
+        this.cv.aeca[index].description = ''
+        this.cv.aeca[index].date = ''
+      }
+    },
+    deleteLanguagesForm: function (index) {
+      if(this.cv.languages.length > 1){
+        this.cv.languages.splice(index, 1)
+      }else{
+        this.cv.languages[index].description = ''
+      }
+    },
+    deleteVolunteerWorkForm: function (index) {
+      if(this.cv.volunteer_work.length > 1){
+        this.cv.volunteer_work.splice(index, 1)
+      }else{
+        this.cv.volunteer_work[index].description = ''
+        this.cv.volunteer_work[index].date = ''
+      }
+    },
+    deleteCommunityWorkForm: function (index) {
+      if(this.cv.community_work.length > 1){
+        this.cv.community_work.splice(index, 1)
+      }else{
+        this.cv.community_work[index].description = ''
+        this.cv.community_work[index].date = ''
+      }
+    },
+    deleteHobbiesForm: function (index) {
+      if(this.cv.hobbies.length > 1){
+        this.cv.hobbies.splice(index, 1)
+      }else{
+        this.cv.hobbies[index].description = ''
+      }
+    },
+    deleteMembershipsForm: function (index) {
+      if(this.cv.memberships.length > 1){
+        this.cv.memberships.splice(index, 1)
+      }else{
+        this.cv.memberships[index].description = ''
+        this.cv.memberships[index].date = ''
+      }
+    },
+    deleteLeadershipExperienceForm: function (index) {
+      if(this.cv.leadership_experience.length > 1){
+        this.cv.leadership_experience.splice(index, 1)
+      }else{
+        this.cv.leadership_experience[index].description = ''
+        this.cv.leadership_experience[index].date = ''
+      }
+    },
+    deleteInternationalStudyExchangeProgramForm: function (index) {
+      if(this.cv.international_study_exchange_program.length > 1){
+        this.cv.international_study_exchange_program.splice(index, 1)
+      }else{
+        this.cv.international_study_exchange_program[index].description = ''
+        this.cv.international_study_exchange_program[index].date = ''
+      }
+    },
+    deleteSummerSchoolProgramForm: function (index) {
+      if(this.cv.summer_school_program.length > 1){
+        this.cv.summer_school_program.splice(index, 1)
+      }else{
+        this.cv.summer_school_program[index].description = ''
+        this.cv.summer_school_program[index].date = ''
+      }
+    },
+    deleteScholarshipsFellowshipsForm: function (index) {
+      if(this.cv.scholarships_fellowships.length > 1){
+        this.cv.scholarships_fellowships.splice(index, 1)
+      }else{
+        this.cv.scholarships_fellowships[index].description = ''
+        this.cv.scholarships_fellowships[index].date = ''
+      }
+    },
+    step1display: function () {
+      this.step1 = true
+      this.step2 = false
+      this.step3 = false
+      this.step4 = false
+    },
+    step2display: function () {
+      this.step1 = false
+      this.step2 = true
+      this.step3 = false
+      this.step4 = false
+    },
+    step3display: function () {
+      this.step1 = false
+      this.step2 = false
+      this.step3 = true
+      this.step4 = false
+    },
+    step4display: function () {
+      this.step1 = false
+      this.step2 = false
+      this.step3 = false
+      this.step4 = true
+    },
+    step1scroll: function (j) {
+      this.$vuetify.goTo(this.step1ids[j])
+    },
+    step2scroll: function (j) {
+      this.$vuetify.goTo(this.step2ids[j])
+    },
+    step3scroll: function (j) {
+      this.$vuetify.goTo(this.step3ids[j])
+    },
+    step4scroll: function (j) {
+      this.$vuetify.goTo(this.step4ids[j])
+    },
+  },
+  beforeMount() {
+    this.getAllUsers()
+  }
+});
+  </script>
+    
+  <!-- Add "scoped" attribute to limit CSS to this component only -->
+  <style scoped>
+    h4, h5{
+      color: rgb(157, 0, 169);
+    }
+    .v-snack--vertical .v-snack__content {
+      height: 500px;
+      width: 300px;
+    }
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #loader {
+        display: block;
+        position: relative;
+        left: 50%;
+        top: 50%;
+        width: 150px;
+        height: 150px;
+        margin: -75px 0 0 -75px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: #9370DB;
+        -webkit-animation: spin 2s linear infinite;
+        animation: spin 2s linear infinite;
+    }
+    #loader:before {
+        content: "";
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        right: 5px;
+        bottom: 5px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: #BA55D3;
+        -webkit-animation: spin 3s linear infinite;
+        animation: spin 3s linear infinite;
+    }
+    #loader:after {
+        content: "";
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: #FF00FF;
+        -webkit-animation: spin 1.5s linear infinite;
+        animation: spin 1.5s linear infinite;
+    }
+    @-webkit-keyframes spin {
+        0%   {
+            -webkit-transform: rotate(0deg);
+            -ms-transform: rotate(0deg);
+            transform: rotate(0deg);
+        }
+        100% {
+            -webkit-transform: rotate(360deg);
+            -ms-transform: rotate(360deg);
+            transform: rotate(360deg);
+        }
+    }
+    @keyframes spin {
+      0%   {
+          -webkit-transform: rotate(0deg);
+          -ms-transform: rotate(0deg);
+          transform: rotate(0deg);
+      }
+      100% {
+          -webkit-transform: rotate(360deg);
+          -ms-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+    }
+    .changes-logs{
+      white-space: pre-line;
+    }
+    .message-logs{
+      white-space: pre-line;
+    }
+    #main-content{
+      display: none;
+    }
+    .v-footer{
+      box-shadow:5px 12px 8px 10px #111;
+    }
+  </style>
+</body>
+</html>
+    
